@@ -1,0 +1,62 @@
+{% extends 'partials/base.html' %} 
+
+{% block content %}
+
+<div class ="container" mt-3 pt-3>
+
+<div class= "row">
+
+<div class= "col-md-3">
+	<h3>Enter Information</h3>
+	
+	<p class="text-justify">
+	Submit the host species of interest (should correspond to insect of interest): 
+	</p>
+<form method="POST" action="{% url 'map' %}">{% csrf_token %}
+        <label for="hspecies">Host species:</label>
+		<select id="hspecies" name="hspecies">
+        <option value="Jack Pine">Jack Pine</option>
+		<option value="Balsam Fir">Balsam Fir</option>
+		<option value="White Spruce">White Spruce</option>
+		<option value="Black Spruce">Black Spruce</option>
+		<option value="All SBW Host Species">All SBW Host Species</option>
+		</select>
+
+		
+	<p class="text-justify">
+	Submit the threshold for % basal area of host species abundance:  
+	</p>
+        <input type="number" name="threshold">
+
+
+	<p class="text-justify">
+	Submit the dataset you wish to use: 
+	</p>
+	
+	    <label for="dset">Data source:</label>
+		<select id="dset" name="dset">
+        <option value="Beaudoin">Beaudoin</option>
+		</select>
+
+        <input type="submit" name="submit">
+</form>
+
+
+
+</div>
+
+<div class= "col-md-8">
+	<h3 class="text-center">Selected Host Species Abundance within Polygon</h3>
+	
+	{{m  | safe}}
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %} 
+
+
+

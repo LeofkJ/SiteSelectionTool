@@ -1,0 +1,53 @@
+{% extends 'partials/base.html' %} 
+
+{% block content %}
+
+<div class ="container" mt-3 pt-3>
+
+<div class= "row">
+
+<div class= "col-md-3">
+	<h3>Enter Information</h3>
+	
+	<p class="text-justify">
+	Fire polygons to exclude - enter years: 
+	</p>
+<form method="POST" action="{% url 'map4' %}">{% csrf_token %}
+        <input type="number" name="year1">
+		<input type="number" name="year2">
+		
+
+	<p class="text-justify">
+	Enter minimum area of site (km2): 
+	</p>
+
+        <input type="float" name="area">
+		
+	<p class="text-justify">
+	Enter minimum distance to road: 
+	</p>
+
+        <input type="float" name="droad">		
+		
+        <input type="submit" name="submit">
+</form>
+
+
+
+</div>
+
+<div class= "col-md-8">
+	<h3 class="text-center">Filtered Sites</h3>
+	
+	{{m  | safe}}
+
+</div>
+
+</div>
+
+</div>
+
+{% endblock %} 
+
+
+
