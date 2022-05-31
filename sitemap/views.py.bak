@@ -1,0 +1,61 @@
+from django.shortcuts import render
+from django.http import HttpResponse
+import folium
+import geopandas as gpd
+
+# Create your views here.
+
+def test_form(request):
+
+    if(request.POST):
+        b=request.POST.get('threshold')
+        print(request.POST)
+        return HttpResponse(b)
+    else:   
+
+        return render(request, "map.html")
+
+def read_data(fp):
+
+    jack_pine_abundance = gpd.read_file(fp)
+    return jack_pine_abundance
+      
+
+def index(request):
+    return render(request, 'index.html')
+
+def map(request):
+
+
+    m = folium.Map(location=[48.63290858589535,-83.671875],zoom_start=5,control_scale=True,tiles = 'stamentoner')
+    b = -1
+    if b >= 0:
+
+        
+        gjson = read_data('jack_pine_areas_g50_final.shp')
+        gjson['geoid'] = gjson.index.astype(str)
+        folium.Choropleth(
+        geo_data=gjson,
+        name='Population in 2020',
+        data=gjson,
+        columns=['geoid','DN'],
+        key_on='feature.id',
+        fill_color='YlOrRd',
+        fill_opacity=0.7,
+        line_opacity=0.2,
+        line_color='white', 
+        line_weight=0,
+        highlight=False, 
+        smooth_factor=1.0,
+        #threshold_scale=[100, 250, 500, 1000, 2000],
+        legend_name= 'Population in Helsinki').add_to(m)
+    m = m._repr_html_() #HTML representation of original m
+    context = {
+
+        'm': m, 
+
+        }
+    #m = m._repr_html_() #HTML representation of original m
+    return render(request,'map.html',context) 
+
+
