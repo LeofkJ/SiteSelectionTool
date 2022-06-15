@@ -19,7 +19,7 @@ class ASM(models.Model):
     year = models.IntegerField(default=2018)
 
 class ASM_Geom(models.Model):
-    asm_geom = models.CharField(max_length=50000,default='PlaceHolder')
+    asm_geom = models.CharField(max_length=5000000,default='PlaceHolder')
 
 SPEC_CHOICES = (
     ('Jack Pine','Jack Pine'),
@@ -45,7 +45,7 @@ class AGE(models.Model):
     dset2 = models.CharField(max_length=50,choices = DSET_CHOICES,default='Beaudoin')
 
 class GEOM(models.Model):
-    geometry = models.CharField(max_length=50000,default='PlaceHolder')
+    geometry = models.CharField(max_length=5000000,default='PlaceHolder')
 
 class FILTER(models.Model):
     year1 = models.IntegerField(default=2009)
@@ -54,7 +54,7 @@ class FILTER(models.Model):
     droad = models.FloatField(default=1)
 
 class GEOM2(models.Model):
-    geometry2 = models.CharField(max_length=50000,default='PlaceHolder')
+    geometry2 = models.CharField(max_length=5000000,default='PlaceHolder')
 
 class EXPORT(models.Model):
     nsite = models.IntegerField(default=5)
