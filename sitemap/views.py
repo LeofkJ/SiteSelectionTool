@@ -414,7 +414,7 @@ def map(request):
              if min([abs(t-x) for x in bf_op]) > 10 and t > max(bf_op):
                  df2 = gpd.GeoDataFrame()
              else:
-                 df2 = read_data('balsam_fir/spec_bf_'+str(sw_op[closest])+'.geojson')
+                 df2 = read_data('balsam_fir/spec_bf_'+str(bf_op[closest])+'.geojson')
                  print(df2)
             
              #df2 = df2[df2['ROUND2'] >= t]
@@ -472,7 +472,7 @@ def map(request):
              if min([abs(t-x) for x in sb_op]) > 10 and t > max(sb_op):
                  df2 = gpd.GeoDataFrame()
              else:
-                 df2 = read_data('black_spruce/spec_sb_'+str(sw_op[closest])+'.geojson')
+                 df2 = read_data('black_spruce/spec_sb_'+str(sb_op[closest])+'.geojson')
 
              #df2 = df2[df2['ROUND2'] >= t]
              print('check6')
@@ -491,8 +491,32 @@ def map(request):
              df2 = gpd.GeoDataFrame()
 
     
-             
+    if h == 'All SBW Host Species':
         
+         if t != -1:
+             sb_op = [60,70,80,90,100]
+             closest = [abs(t-x) for x in sb_op].index(min([abs(t-x) for x in sb_op]))
+             print(str(sb_op[closest]))
+             if min([abs(t-x) for x in sb_op]) > 10 and t > max(sb_op):
+                 df2 = gpd.GeoDataFrame()
+             else:
+                 df2 = read_data('all_host/spec_all_'+str(sb_op[closest])+'.geojson')
+
+             #df2 = df2[df2['ROUND2'] >= t]
+             print('check6')
+             #df2['dissolvefield'] = [1]*len(df2)
+             #df2 = df2.dissolve(by='dissolvefield').dissolve()
+             df2 = df2.intersection(gdf['geometry'])
+             print(df2)
+            
+             d = len(df2)
+             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+             geo_j = sim_geo.to_json()
+             geo_j = folium.GeoJson(data=geo_j,
+                           style_function=lambda x: {'fillColor': 'blue','color': 'blue'})
+             geo_j.add_to(m)
+         else:
+             df2 = gpd.GeoDataFrame()        
 
     m = m._repr_html_() #HTML representation of original m
     context = {
@@ -599,6 +623,7 @@ def map2(request):
              print(a)
 
              if a in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]:
+                 print(a)
                  df2 = read_data('age/age_'+str(a)+'.geojson')
             
              else:
@@ -607,6 +632,7 @@ def map2(request):
                  print(minus)
                  get_min = min(minus)
                  a = get_min
+                 print(a)
                  df2 = read_data('age/age_'+str(a)+'.geojson')
 
              print('check6')
@@ -614,6 +640,7 @@ def map2(request):
              df2 = df2.dissolve(by='dissolvefield').dissolve()
              print(df2)
              df2 = df2.intersection(gdf['geometry'].unary_union)
+             
             
              d = len(df2)
              sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
@@ -627,7 +654,45 @@ def map2(request):
 
              df2 = gpd.GeoDataFrame()  
         
+    if b == 'Spruce Budworm':
+         
 
+         if a != -1:
+
+             a = round(a,-1)
+             print(a)
+
+             if a in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]:
+                 print(a)
+                 df2 = read_data('age_sbw/age_sbw_'+str(a)+'.geojson')
+            
+             else:
+                 #get closest number in list
+                 minus = [x-a for x in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]]
+                 print(minus)
+                 get_min = min(minus)
+                 a = get_min
+                 print(a)
+                 df2 = read_data('age_sbw/age_sbw_'+str(a)+'.geojson')
+
+             print('check6')
+             df2['dissolvefield'] = [1]*len(df2)
+             df2 = df2.dissolve(by='dissolvefield').dissolve()
+             print(df2)
+             df2 = df2.intersection(gdf['geometry'].unary_union)
+             
+            
+             d = len(df2)
+             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+             geo_j = sim_geo.to_json()
+             geo_j = folium.GeoJson(data=geo_j,
+                           style_function=lambda x: {'fillColor': 'yellow','color': 'yellow'})
+             geo_j.add_to(m)
+                 
+
+         else:
+
+             df2 = gpd.GeoDataFrame() 
     m = m._repr_html_() #HTML representation of original m
     context = {
 
@@ -777,7 +842,8 @@ def map3(request):
 
         #print(df5['geometry'])
 
-        dinput = str(df5['geometry'][0])
+        dinput = str(df5['geometry'])
+        print(dinput)
 
         #df5 = gpd.GeoDataFrame(geometry=df5)
 
@@ -799,6 +865,8 @@ def map3(request):
                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
                 geo_j.add_to(m)
+        elif len(df5) == 0:
+            print('No polygons selected') 
         else:
             sim_geo = gpd.GeoSeries(df5['geometry'])
             geo_j = sim_geo.to_json()
