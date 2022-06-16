@@ -494,7 +494,7 @@ def map(request):
     if h == 'All SBW Host Species':
         
          if t != -1:
-             sb_op = [60,70,80,90,100]
+             sb_op = [30,40,50,60,70,80,90,100]
              closest = [abs(t-x) for x in sb_op].index(min([abs(t-x) for x in sb_op]))
              print(str(sb_op[closest]))
              if min([abs(t-x) for x in sb_op]) > 10 and t > max(sb_op):
@@ -662,13 +662,13 @@ def map2(request):
              a = round(a,-1)
              print(a)
 
-             if a in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]:
+             if a in [50,60,70,80,90,100,110,120,130,140,150,160,170,180]:
                  print(a)
                  df2 = read_data('age_sbw/age_sbw_'+str(a)+'.geojson')
             
              else:
                  #get closest number in list
-                 minus = [x-a for x in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]]
+                 minus = [x-a for x in [50,60,70,80,90,100,110,120,130,140,150,160,170,180]]
                  print(minus)
                  get_min = min(minus)
                  a = get_min
