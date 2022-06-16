@@ -263,9 +263,11 @@ def index(request):
              inst_ini = ASM_Geom.objects.get(id=1)
          except:
              inst_ini = None
-         if inst_ini == None:         
+         if inst_ini == None and len(df_save) > 0:         
              inst = ASM_Geom.objects.create(asm_geom=str(df_save[0]))
-            
+        
+         elif len(df_save) < 0:
+             inst_ini = None
          else:
             inst_ini.asm_geom = str(df_save[0])
             inst_ini.save(update_fields=['asm_geom'])
@@ -622,13 +624,13 @@ def map2(request):
              a = round(a,-1)
              print(a)
 
-             if a in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]:
+             if a in [160, 130, 100, 70, 140, 110, 80, 50, 150, 120, 90, 60]:
                  print(a)
                  df2 = read_data('age/age_'+str(a)+'.geojson')
             
              else:
                  #get closest number in list
-                 minus = [x-a for x in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]]
+                 minus = [x-a for x in [160, 130, 100, 70, 140, 110, 80, 50, 150, 120, 90, 60]]
                  print(minus)
                  get_min = min(minus)
                  a = get_min
