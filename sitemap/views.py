@@ -269,7 +269,7 @@ def index(request):
          elif len(df_save) < 0:
              inst_ini = None
          else:
-            inst_ini.asm_geom = str(df_save[0])
+            inst_ini.asm_geom = str(df_save)
             inst_ini.save(update_fields=['asm_geom'])
          
          for _, r in df.iterrows():
