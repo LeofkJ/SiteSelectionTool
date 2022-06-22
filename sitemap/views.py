@@ -323,9 +323,13 @@ def map(request):
 
     from shapely import wkt
 
-    d2 = wkt.loads(geom)
+    try: 
 
-    gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        d2 = wkt.loads(geom)
+        gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+
+    except:
+        gdf = gpd.GeoDataFrame()
 
     print('check1') 
     h,t,d = test_form2(request)
@@ -395,14 +399,17 @@ def map(request):
              print('check6')
              df2['dissolvefield'] = [1]*len(df2)
              df2 = df2.dissolve(by='dissolvefield').dissolve()
-             df2 = df2.intersection(gdf['geometry'])
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'])
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'blue','color': 'blue'})
-             geo_j.add_to(m)
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame()
          else:
              df2 = gpd.GeoDataFrame()
 
@@ -423,15 +430,17 @@ def map(request):
              print('check6')
              #df2['dissolvefield'] = [1]*len(df2)
              #df2 = df2.dissolve(by='dissolvefield').dissolve()
-             df2 = df2.intersection(gdf['geometry'])
-             print(df2)
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'])
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'blue','color': 'blue'})
-             geo_j.add_to(m)
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame()
          else:
              df2 = gpd.GeoDataFrame()
 
@@ -452,15 +461,17 @@ def map(request):
              print('check6')
              #df2['dissolvefield'] = [1]*len(df2)
              #df2 = df2.dissolve(by='dissolvefield').dissolve()
-             df2 = df2.intersection(gdf['geometry'])
-             print(df2)
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'])
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'blue','color': 'blue'})
-             geo_j.add_to(m)
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame()
          else:
              df2 = gpd.GeoDataFrame()
 
@@ -480,15 +491,17 @@ def map(request):
              print('check6')
              #df2['dissolvefield'] = [1]*len(df2)
              #df2 = df2.dissolve(by='dissolvefield').dissolve()
-             df2 = df2.intersection(gdf['geometry'])
-             print(df2)
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'])
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'blue','color': 'blue'})
-             geo_j.add_to(m)
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame()
          else:
              df2 = gpd.GeoDataFrame()
 
@@ -508,15 +521,17 @@ def map(request):
              print('check6')
              #df2['dissolvefield'] = [1]*len(df2)
              #df2 = df2.dissolve(by='dissolvefield').dissolve()
-             df2 = df2.intersection(gdf['geometry'])
-             print(df2)
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'])
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'blue','color': 'blue'})
-             geo_j.add_to(m)
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame()
          else:
              df2 = gpd.GeoDataFrame()        
 
@@ -564,9 +579,13 @@ def map2(request):
 
     from shapely import wkt
 
-    d2 = wkt.loads(geom)
+    try: 
 
-    gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        d2 = wkt.loads(geom)
+
+        gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+    except:
+        gdf = gpd.GeoDataFrame() 
 
     print('check1') 
     a,d = test_form3(request)
@@ -641,16 +660,18 @@ def map2(request):
              df2['dissolvefield'] = [1]*len(df2)
              df2 = df2.dissolve(by='dissolvefield').dissolve()
              print(df2)
-             df2 = df2.intersection(gdf['geometry'].unary_union)
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'].unary_union)
              
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'yellow','color': 'yellow'})
-             geo_j.add_to(m)
-                 
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame() 
 
          else:
 
@@ -681,15 +702,18 @@ def map2(request):
              df2['dissolvefield'] = [1]*len(df2)
              df2 = df2.dissolve(by='dissolvefield').dissolve()
              print(df2)
-             df2 = df2.intersection(gdf['geometry'].unary_union)
+             if len(gdf) > 0: 
+                 df2 = df2.intersection(gdf['geometry'].unary_union)
              
             
-             d = len(df2)
-             sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
+                 d = len(df2)
+                 sim_geo = gpd.GeoSeries(df2).simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'yellow','color': 'yellow'})
-             geo_j.add_to(m)
+                 geo_j.add_to(m)
+             else:
+                 df2 = gpd.GeoDataFrame() 
                  
 
          else:
@@ -745,9 +769,13 @@ def map3(request):
 
     from shapely import wkt
 
-    d2 = wkt.loads(geom)
+    try: 
 
-    gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        d2 = wkt.loads(geom)
+
+        gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+    except:
+        gdf = gpd.GeoDataFrame() 
 
     key = 'pk.eyJ1IjoiY2xhcmFyaXNrIiwiYSI6ImNrbjk5cGxoMjE1cHIydm4xNW55cmZ1cXgifQ.3CXp0GaWY1S7iMcPP8n9Iw'
     tile_input = 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + str(key)
@@ -815,66 +843,68 @@ def map3(request):
         print('check9')
         df3['dissolvefield'] = [1]*len(df3)
         df3 = df3.dissolve(by='dissolvefield').dissolve()
-        df3 = df3.intersection(gdf['geometry'])
-        print(df3)
-    else:
-        df3 = gpd.GeoDataFrame() 
-
-    print('check7')
-    print(df3[0].is_empty)
-    if not df3[0].is_empty:
-        print(df3)
-        df4 = df2.clip(df3.unary_union)
-        print(df4)
-        
-
-        df4 = gpd.GeoDataFrame(geometry=df4['geometry'])
-        df4['dissolvefield'] = 1
-        df4 = df4.dissolve(by='dissolvefield').dissolve()
-        #print(df4)
-
-        
-        df5 = df4 #df4.intersection(gdf['geometry'].unary_union) #intersection
-
-        print(df5)
-        df5 = gpd.GeoDataFrame(geometry=df5['geometry'])
-        df5['dissolvefield'] = 1
-        #print(df5)
-        df5 = df5.dissolve(by='dissolvefield').dissolve()
-
-        #print(df5['geometry'])
-
-        dinput = str(df5['geometry'])
-        print(dinput)
-
-        #df5 = gpd.GeoDataFrame(geometry=df5)
-
-        try:
-            inst_ini = GEOM.objects.get(id=1)
-        except:
-            inst_ini = None
-        if inst_ini == None:         
-            inst = GEOM.objects.create(geometry=dinput)
-
+        if len(gdf) > 0: 
+            df3 = df3.intersection(gdf['geometry'])
         else:
-            inst_ini.geometry = dinput
-            inst_ini.save(update_fields=['geometry'])               
+            df3 = gpd.GeoDataFrame() 
+    else:
+        df3 = gpd.GeoDataFrame()
 
-        if len(df5) > 1: 
-            for _, r in df5.iterrows():
-                sim_geo = gpd.GeoSeries(r['geometry']) #.simplify(tolerance=1)
+    if len(df3) > 0: 
+
+        if not df3[0].is_empty:
+            print(df3)
+            df4 = df2.clip(df3.unary_union)
+            print(df4)
+            
+
+            df4 = gpd.GeoDataFrame(geometry=df4['geometry'])
+            df4['dissolvefield'] = 1
+            df4 = df4.dissolve(by='dissolvefield').dissolve()
+            #print(df4)
+
+            
+            df5 = df4 #df4.intersection(gdf['geometry'].unary_union) #intersection
+
+            print(df5)
+            df5 = gpd.GeoDataFrame(geometry=df5['geometry'])
+            df5['dissolvefield'] = 1
+            #print(df5)
+            df5 = df5.dissolve(by='dissolvefield').dissolve()
+
+            #print(df5['geometry'])
+
+            dinput = str(df5['geometry'])
+            print(dinput)
+
+            #df5 = gpd.GeoDataFrame(geometry=df5)
+
+            try:
+                inst_ini = GEOM.objects.get(id=1)
+            except:
+                inst_ini = None
+            if inst_ini == None:         
+                inst = GEOM.objects.create(geometry=dinput)
+
+            else:
+                inst_ini.geometry = dinput
+                inst_ini.save(update_fields=['geometry'])               
+
+            if len(df5) > 1: 
+                for _, r in df5.iterrows():
+                    sim_geo = gpd.GeoSeries(r['geometry']) #.simplify(tolerance=1)
+                    geo_j = sim_geo.to_json()
+                    geo_j = folium.GeoJson(data=geo_j,
+                               style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
+                    geo_j.add_to(m)
+            elif len(df5) == 0:
+                print('No polygons selected') 
+            else:
+                sim_geo = gpd.GeoSeries(df5['geometry'])
                 geo_j = sim_geo.to_json()
                 geo_j = folium.GeoJson(data=geo_j,
-                           style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
-                geo_j.add_to(m)
-        elif len(df5) == 0:
-            print('No polygons selected') 
-        else:
-            sim_geo = gpd.GeoSeries(df5['geometry'])
-            geo_j = sim_geo.to_json()
-            geo_j = folium.GeoJson(data=geo_j,
-                           style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
-            geo_j.add_to(m)             
+                               style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
+                geo_j.add_to(m)             
              
     m = m._repr_html_() #HTML representation of original m
     context = {
@@ -899,9 +929,13 @@ def map4(request):
 
     from shapely import wkt
 
-    d2 = wkt.loads(d2)
+    try: 
 
-    gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        d2 = wkt.loads(d2)
+
+        gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+    except:
+        gdf = gpd.GeoDataFrame()
 
     y1,y2,a,dr = test_form4(request)
 
@@ -939,69 +973,82 @@ def map4(request):
 
          print(df)
 
-         r = gdf.difference(df['geometry'])
-         r = r.geometry.explode()
-         r = gpd.GeoDataFrame(geometry=r).to_crs('esri:102001')
-            
+         if len(gdf) > 0: 
 
-         if dr > 0:
+             r = gdf.difference(df['geometry'])
+             r = r.geometry.explode()
+             r = gpd.GeoDataFrame(geometry=r).to_crs('esri:102001')
+                
 
-             roads = read_data('mroads_simple.geojson').to_crs('esri:102001')
+             if dr > 0:
 
-             buff = roads.geometry.buffer(dr*1000).unary_union
+                 roads = read_data('mroads_simple.geojson').to_crs('esri:102001')
 
-             #buffer_df = gpd.GeoDataFrame(geometry=buff, crs='esri:102001')
-             #buffer_df['dissolvefield'] = [1]*len(buff)
-             #buff = buffer_df
+                 buff = roads.geometry.buffer(dr*1000).unary_union
 
-             if_intersect = r.intersects(buff) 
+                 #buffer_df = gpd.GeoDataFrame(geometry=buff, crs='esri:102001')
+                 #buffer_df['dissolvefield'] = [1]*len(buff)
+                 #buff = buffer_df
 
-             r['if_intersect'] = list(if_intersect) 
+                 if_intersect = r.intersects(buff) 
 
-             r = r[r['if_intersect'] == True]
-               
+                 r['if_intersect'] = list(if_intersect) 
 
-         r = gpd.GeoDataFrame(r,geometry=r['geometry'])
-         r['area'] = r['geometry'].area/ 10**6
-         print(r)
-         r = r[r['area'] >= a]
+                 r = r[r['if_intersect'] == True]
+                   
 
-         print(r)
-         if len(r) > 0: 
-             r = gpd.GeoDataFrame(geometry=r['geometry']).dissolve()
-             r = r.to_crs('EPSG:4326')
+             r = gpd.GeoDataFrame(r,geometry=r['geometry'])
+             r['area'] = r['geometry'].area/ 10**6
+             print(r)
+             r = r[r['area'] >= a]
 
-             r = r['geometry']
-         else:
-             r = r
-         try: 
-             inst_ini = GEOM2.objects.get(id=1)
-         except:
-             inst_ini = None
-         if inst_ini == None:         
-             inst = GEOM2.objects.create(geometry2=str(r[0]))
-            
-         else:
+             print(r)
              if len(r) > 0: 
-                 inst_ini.geometry2 = str(r[0])
-                 inst_ini.save(update_fields=['geometry2'])
-                 
+                 r = gpd.GeoDataFrame(geometry=r['geometry']).dissolve()
+                 r = r.to_crs('EPSG:4326')
+
+                 r = r['geometry']
+             else:
+                 r = r
+             try: 
+                 inst_ini = GEOM2.objects.get(id=1)
+             except:
+                 inst_ini = None
+             if inst_ini == None:         
+                 inst = GEOM2.objects.create(geometry2=str(r[0]))
+                
+             else:
+                 if len(r) > 0: 
+                     inst_ini.geometry2 = str(r[0])
+                     inst_ini.save(update_fields=['geometry2'])
+                     
+                 else:
+                     inst_ini.geometry2 = 'None'
+                     inst_ini.save(update_fields=['geometry2'])
+             if len(r) > 0: 
+                 sim_geo = gpd.GeoSeries(r) #.simplify(tolerance=1)
+                 geo_j = sim_geo.to_json()
+                 geo_j = folium.GeoJson(data=geo_j,
+                                   style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
+                 geo_j.add_to(m)
+
+                 sim_d = gpd.GeoSeries(df['geometry'])
+                 geo_d = sim_d.to_json()
+                 geo_d = folium.GeoJson(data=geo_d,
+                                   style_function=lambda x: {'fillColor': 'red','fill_opacity':0.8,'color': 'red'})
+                 geo_d.add_to(m)
+    else:
+             try: 
+                 inst_ini = GEOM2.objects.get(id=1)
+             except:
+                 inst_ini = None
+             if inst_ini == None:         
+                 inst = GEOM2.objects.create(geometry2='None')
+                
              else:
                  inst_ini.geometry2 = 'None'
                  inst_ini.save(update_fields=['geometry2'])
-         if len(r) > 0: 
-             sim_geo = gpd.GeoSeries(r) #.simplify(tolerance=1)
-             geo_j = sim_geo.to_json()
-             geo_j = folium.GeoJson(data=geo_j,
-                               style_function=lambda x: {'fillColor': 'green','fill_opacity':0.8,'color': 'green'})
-             geo_j.add_to(m)
-
-             sim_d = gpd.GeoSeries(df['geometry'])
-             geo_d = sim_d.to_json()
-             geo_d = folium.GeoJson(data=geo_d,
-                               style_function=lambda x: {'fillColor': 'red','fill_opacity':0.8,'color': 'red'})
-             geo_d.add_to(m)
-         
+                     
     m = m._repr_html_() #HTML representation of original m
     context = {
 
@@ -1032,10 +1079,14 @@ def map5(request):
 
     from shapely import wkt
 
-    d2 = wkt.loads(d2)
+    try: 
 
-    gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
-    gdf['id'] = [1]
+        d2 = wkt.loads(d2)
+
+        gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        gdf['id'] = [1]
+    except:
+        gdf = gpd.GeoDataFrame()
 
     e = test_form5(request)
 
@@ -1069,7 +1120,7 @@ def map5(request):
         inst_ini = EXPORT.objects.get(id=1) 
 
 
-    if e > 0:
+    if e > 0 and len(gdf) > 0:
         from ortools.linear_solver import pywraplp
         gdf['dissolvefield'] = 1
         dgdf = gdf.buffer(0.0001)
@@ -1186,10 +1237,14 @@ def map6(request):
 
     from shapely import wkt
 
-    d2 = wkt.loads(d2)
+    try: 
 
-    gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
-    gdf['id'] = [1]
+        d2 = wkt.loads(d2)
+
+        gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        gdf['id'] = [1]
+    except:
+        gdf = gpd.GeoDataFrame()
 
     #Get insect type
     field_name = 'nsite'
@@ -1202,7 +1257,7 @@ def map6(request):
     else:
         e = -1
 
-    if e > 0:
+    if e > 0 and len(gdf) > 0:
         from ortools.linear_solver import pywraplp
         gdf['dissolvefield'] = 1
         dgdf = gdf.buffer(0.0001)
@@ -1277,12 +1332,13 @@ def map6(request):
         df_sites = pd.DataFrame()    
 
 
-    if len(df_sites) > 0:
+    #if len(df_sites) > 0:
 
-        file_name = 'optimized_sites.txt'
-        response = HttpResponse(content_type='map6/force-download')
-        response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
-        df_sites.to_csv(response)
-        return response
+    file_name = 'optimized_sites.txt'
+    response = HttpResponse(content_type='map6/force-download')
+    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
+    df_sites.to_csv(response)
+    return response
+    
         
 
