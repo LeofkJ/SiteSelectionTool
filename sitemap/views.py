@@ -81,7 +81,7 @@ def get_dist_haversine_polygon(gdf1):
     return site_options
 
 
-def optimize_for_site(site,dictionary_list,e):
+def optimize_for_site(site,dictionary_list,n):
 
     information = pd.DataFrame()
     store_pot_site = [] 
@@ -148,9 +148,11 @@ def optimize_for_site(site,dictionary_list,e):
         all_vars = [eval(i) for i in var]
         append_lists.append(all_vars)
 
+    print(append_lists)
+    print(n-1)
     for list_of_con in append_lists:
-        
-        solver.Add(sum(list_of_con) == e)
+        nsite_total = n-1
+        solver.Add(sum(list_of_con) == nsite_total)
 
     #print('Number of constraints =', solver.NumConstraints()) 
     #print('Number of variables =', solver.NumVariables())
@@ -979,9 +981,15 @@ def map4(request):
     if y1 != -1:
          df = read_data('fires_flat.geojson')
 
-         df = df[df['YEAR'] >= y1]
-         df = df[df['YEAR'] <= y2]
+         if y1 != y2: 
 
+             df = df[df['YEAR'] >= y1]
+             df = df[df['YEAR'] <= y2]
+         else:
+             df = df[df['YEAR'] == y1]
+             
+                           
+    
          df = df.dissolve() 
 
          print(df)
@@ -1139,7 +1147,8 @@ def map5(request):
             inst_ini.save(update_fields=['nsite'])        
     else:
         e = -1
-        inst = EXPORT.objects.create(nsite=5)
+        print('Problem')
+        inst = EXPORT.objects.create(nsite=0)
         inst_ini = EXPORT.objects.get(id=1) 
 
 
@@ -1269,16 +1278,18 @@ def map6(request):
     except:
         gdf = gpd.GeoDataFrame()
 
-    #Get insect type
+    
     field_name = 'nsite'
-    obj = EXPORT.objects.first()
-    field_object = EXPORT._meta.get_field(field_name)
-    e = field_object.value_from_object(obj)
+    obj = EXPORT.objects.last() #.first()
+    field_object2 = EXPORT._meta.get_field(field_name)
+    e = field_object2.value_from_object(obj)
 
     if e is not None:
         e = int(e)
     else:
         e = -1
+
+    print(e)
 
     if e > 0 and len(gdf) > 0:
         from ortools.linear_solver import pywraplp
@@ -1302,7 +1313,7 @@ def map6(request):
         site7_loc = [] 
         for row in e_gdf[['geometry','id_num']].iterrows():
             site = row
-            print(list(row)[1])
+            #print(list(row)[1])
             site = list(site)[1][0]
             site = gpd.GeoDataFrame(geometry=[site]) #Site[0]
             site = site.centroid

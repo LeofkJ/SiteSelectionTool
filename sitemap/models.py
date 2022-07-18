@@ -57,7 +57,7 @@ class GEOM2(models.Model):
     geometry2 = models.CharField(max_length=5000000,default='PlaceHolder')
 
 class EXPORT(models.Model):
-    nsite = models.IntegerField(default=5)
+    nsite = models.IntegerField(default=0)
     
 class FORCE(models.Model):
     action = models.CharField(max_length=10,default='No')
