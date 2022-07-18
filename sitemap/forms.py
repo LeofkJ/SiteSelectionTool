@@ -5,6 +5,7 @@ from .models import AGE
 from .models import FILTER
 from .models import GEOM
 from .models import GEOM2
+from .models import AGEOM
 from .models import EXPORT
 from .models import FORCE
 import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geospatialproject.settings")
@@ -116,6 +117,13 @@ class HomeFormGeom2(forms.ModelForm):
     class Meta:
         model = GEOM2
         fields = ('geometry2',)
+
+class HomeFormGeomA(forms.ModelForm):
+    ageom = forms.CharField()
+
+    class Meta:
+        model = AGEOM
+        fields = ('ageom',)
 
 def test_form5(request):
      e=request.POST.get('nsite')
