@@ -24,7 +24,7 @@
 	</p>
 <form method="POST" action="{% url 'map4' %}">{% csrf_token %}
         <label for="year1">Submit the first year of fires to exclude:</label>
-		<input type="range" name="year1" value=2010 min=1996 max=2021 oninput="this.nextElementSibling.value = this.value">
+		<input type="range" name="year1" value=2010 min=1996 max=2020 oninput="this.nextElementSibling.value = this.value">
 		<output>2010</output>
 		<style>
 input[type="range"] {
@@ -91,7 +91,7 @@ input[type="range"]::-ms-thumb {
 }
 		</style>
         <label for="year2">Submit the second year of fires to exclude:</label>
-		<input type="range" name="year2" value=2010 min=1996 max=2021 oninput="this.nextElementSibling.value = this.value">
+		<input type="range" name="year2" value=2010 min=1996 max=2020 oninput="this.nextElementSibling.value = this.value">
 		<output>2010</output>
 		<style>
 input[type="range"] {
