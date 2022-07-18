@@ -56,6 +56,9 @@ class FILTER(models.Model):
 class GEOM2(models.Model):
     geometry2 = models.CharField(max_length=5000000,default='PlaceHolder')
 
+class AGEOM(models.Model):
+    ageom = models.CharField(max_length=5000000,default='PlaceHolder')
+
 class EXPORT(models.Model):
     nsite = models.IntegerField(default=0)
     
