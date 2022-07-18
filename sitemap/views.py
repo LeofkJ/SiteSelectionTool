@@ -269,8 +269,11 @@ def index(request):
          elif len(df_save) < 0:
              inst_ini = None
          else:
-            inst_ini.asm_geom = str(df_save)
-            inst_ini.save(update_fields=['asm_geom'])
+             try:
+                 inst_ini.asm_geom = str(df_save[0])
+                 inst_ini.save(update_fields=['asm_geom'])
+             except:
+                 inst_ini = None
          
          for _, r in df.iterrows():
 
@@ -324,14 +327,16 @@ def map(request):
     from shapely import wkt
 
     try: 
-
+    
         d2 = wkt.loads(geom)
         gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        
 
     except:
         gdf = gpd.GeoDataFrame()
 
-    print('check1') 
+    print('check1')
+    print(gdf)
     h,t,d = test_form2(request)
     print('check2')
     print(t)
@@ -521,7 +526,8 @@ def map(request):
              print('check6')
              #df2['dissolvefield'] = [1]*len(df2)
              #df2 = df2.dissolve(by='dissolvefield').dissolve()
-             if len(gdf) > 0: 
+             if len(gdf) > 0:
+                 print('check7')
                  df2 = df2.intersection(gdf['geometry'])
             
                  d = len(df2)
@@ -813,7 +819,7 @@ def map3(request):
              bf_op = [20,30,40,50,60]
              closest = [abs(t-x) for x in bf_op].index(min([abs(t-x) for x in bf_op]))
              print(str(bf_op[closest]))
-             if min([abs(t-x) for x in bf_op]) > 10 and t > max(bf_op):
+             if min([abs(t-x) for x in bf_op]) > 10 and t > max(bf_op): #if no data in class then empty geodataframe
                  df3 = gpd.GeoDataFrame() 
              else: 
                  df3 = read_data('balsam_fir/spec_bf_'+str(bf_op[closest])+'.geojson')
@@ -841,16 +847,18 @@ def map3(request):
             
             
         print('check9')
-        df3['dissolvefield'] = [1]*len(df3)
-        df3 = df3.dissolve(by='dissolvefield').dissolve()
-        if len(gdf) > 0: 
-            df3 = df3.intersection(gdf['geometry'])
+        var_exists = 'df3' in locals() or 'df3' in globals() #Look before you leap, we are checking if we have filled out previous forms correctly 
+        if var_exists: 
+            df3['dissolvefield'] = [1]*len(df3)
+            df3 = df3.dissolve(by='dissolvefield').dissolve()
+            if len(gdf) > 0: 
+                df3 = df3.intersection(gdf['geometry'])
+            else:
+                df3 = gpd.GeoDataFrame() 
         else:
-            df3 = gpd.GeoDataFrame() 
-    else:
-        df3 = gpd.GeoDataFrame()
+            df3 = gpd.GeoDataFrame()
 
-    if len(df3) > 0: 
+    if len(df3) > 0 and var_exists: 
 
         if not df3[0].is_empty:
             print(df3)
@@ -864,9 +872,10 @@ def map3(request):
             #print(df4)
 
             
-            df5 = df4 #df4.intersection(gdf['geometry'].unary_union) #intersection
+            df5 = df4 #.intersection(gdf['geometry'].unary_union) #intersection - don't need to redo this 
 
             print(df5)
+            
             df5 = gpd.GeoDataFrame(geometry=df5['geometry'])
             df5['dissolvefield'] = 1
             #print(df5)
@@ -874,7 +883,7 @@ def map3(request):
 
             #print(df5['geometry'])
 
-            dinput = str(df5['geometry'])
+            dinput = str(df5['geometry'][0])
             print(dinput)
 
             #df5 = gpd.GeoDataFrame(geometry=df5)
@@ -884,7 +893,9 @@ def map3(request):
             except:
                 inst_ini = None
             if inst_ini == None:         
+                #inst = GEOM.objects.create(geometry=dinput)
                 inst = GEOM.objects.create(geometry=dinput)
+                
 
             else:
                 inst_ini.geometry = dinput
@@ -934,7 +945,9 @@ def map4(request):
         d2 = wkt.loads(d2)
 
         gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
+        print(gdf)
     except:
+        print('error')
         gdf = gpd.GeoDataFrame()
 
     y1,y2,a,dr = test_form4(request)
@@ -978,6 +991,10 @@ def map4(request):
              r = gdf.difference(df['geometry'])
              r = r.geometry.explode()
              r = gpd.GeoDataFrame(geometry=r).to_crs('esri:102001')
+             r['is_valid'] = r.is_valid
+             print(r)
+             r = r[r['is_valid'] == True]
+
                 
 
              if dr > 0:
@@ -985,24 +1002,29 @@ def map4(request):
                  roads = read_data('mroads_simple.geojson').to_crs('esri:102001')
 
                  buff = roads.geometry.buffer(dr*1000).unary_union
+                 
 
-                 #buffer_df = gpd.GeoDataFrame(geometry=buff, crs='esri:102001')
-                 #buffer_df['dissolvefield'] = [1]*len(buff)
-                 #buff = buffer_df
+                 buffer_df = gpd.GeoDataFrame(geometry=[buff], crs='esri:102001').explode()
+                 buffer_df['is_valid'] = buffer_df.is_valid
+                 print(buffer_df)
+                 buffer_df = buffer_df[buffer_df['is_valid'] == True]
+                 buffer_df['dissolvefield'] = [1]*len(buffer_df)
+                 buff = buffer_df['geometry'][0]
 
-                 if_intersect = r.intersects(buff) 
+                 
+                 #if_intersect = r.intersects(make_valid(buff))
+                     
 
-                 r['if_intersect'] = list(if_intersect) 
+                 #r['if_intersect'] = list(if_intersect) 
 
-                 r = r[r['if_intersect'] == True]
+                 #r = r[r['if_intersect'] == True]
+                 r = r.clip(buff)
                    
 
              r = gpd.GeoDataFrame(r,geometry=r['geometry'])
              r['area'] = r['geometry'].area/ 10**6
-             print(r)
              r = r[r['area'] >= a]
 
-             print(r)
              if len(r) > 0: 
                  r = gpd.GeoDataFrame(geometry=r['geometry']).dissolve()
                  r = r.to_crs('EPSG:4326')
@@ -1025,7 +1047,8 @@ def map4(request):
                  else:
                      inst_ini.geometry2 = 'None'
                      inst_ini.save(update_fields=['geometry2'])
-             if len(r) > 0: 
+             if len(r) > 0:
+                 print('check5!')
                  sim_geo = gpd.GeoSeries(r) #.simplify(tolerance=1)
                  geo_j = sim_geo.to_json()
                  geo_j = folium.GeoJson(data=geo_j,
