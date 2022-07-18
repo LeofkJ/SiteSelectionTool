@@ -26,6 +26,7 @@ from .models import AGE
 from .models import FILTER
 from .models import GEOM
 from .models import GEOM2
+from .models import AGEOM
 from .models import ASM_Geom
 from .models import EXPORT
 from .models import FORCE
@@ -720,13 +721,45 @@ def map2(request):
                  geo_j = folium.GeoJson(data=geo_j,
                            style_function=lambda x: {'fillColor': 'yellow','color': 'yellow'})
                  geo_j.add_to(m)
+
+##                 try: 
+##                     inst_ini = AGEOM.objects.get(id=1)
+##                 except:
+##                     inst_ini = None
+##                 if inst_ini == None and len(df_save) > 0:         
+##                     inst = AGEOM.objects.create(ageom=str(df2[0]))
+##                
+##                 elif len(df2) < 0:
+##                     inst_ini = None
+##                 else:
+##                     try:
+##                         inst_ini.ageom = str(str(df2[0]))
+##                         inst_ini.save(update_fields=['ageom'])
+##                     except:
+##                         inst_ini = None
              else:
                  df2 = gpd.GeoDataFrame() 
                  
 
          else:
 
-             df2 = gpd.GeoDataFrame() 
+             df2 = gpd.GeoDataFrame()
+
+    try:
+        inst_ini = AGEOM.objects.get(id=1)
+    except:
+        inst_ini = None
+    if inst_ini == None and len(df2) > 0:
+        inst = AGEOM.objects.create(ageom=str(df2[0]))
+
+    elif len(df2) < 0:
+        inst_ini = None
+    else:
+        try:
+            inst_ini.ageom = str(str(df2[0]))
+            inst_ini.save(update_fields=['ageom'])
+        except:
+            inst_ini = None
     m = m._repr_html_() #HTML representation of original m
     context = {
 
@@ -757,22 +790,27 @@ def map3(request):
     d = field_object.value_from_object(obj)
 
 
-    field_name = 'age'
-    obj = AGE.objects.first()
-    field_object = AGE._meta.get_field(field_name)
-    a = field_object.value_from_object(obj)
-    
-    #Get insect type
-    field_name = 'dset2'
-    obj = AGE.objects.first()
-    field_object = AGE._meta.get_field(field_name)
-    d2 = field_object.value_from_object(obj)
+##    field_name = 'age'
+##    obj = AGE.objects.first()
+##    field_object = AGE._meta.get_field(field_name)
+##    a = field_object.value_from_object(obj)
+##    
+##    #Get insect type
+##    field_name = 'dset2'
+##    obj = AGE.objects.first()
+##    field_object = AGE._meta.get_field(field_name)
+##    d2 = field_object.value_from_object(obj)
     
     #Get dtype
     field_name = 'asm_geom'
     obj = ASM_Geom.objects.first()
     field_object = ASM_Geom._meta.get_field(field_name)
     geom = field_object.value_from_object(obj)
+
+    field_name = 'ageom'
+    obj = AGEOM.objects.first()
+    field_object = AGEOM._meta.get_field(field_name)
+    age_geom = field_object.value_from_object(obj)
     print('obtain from database') 
 
     from shapely import wkt
@@ -783,7 +821,15 @@ def map3(request):
 
         gdf = gpd.GeoDataFrame(geometry=[d2], crs='epsg:4326')
     except:
-        gdf = gpd.GeoDataFrame() 
+        gdf = gpd.GeoDataFrame()
+
+    try: 
+
+        d3 = wkt.loads(age_geom)
+
+        df2 = gpd.GeoDataFrame(geometry=[d3], crs='epsg:4326')
+    except:
+        df2 = gpd.GeoDataFrame() 
 
     key = 'pk.eyJ1IjoiY2xhcmFyaXNrIiwiYSI6ImNrbjk5cGxoMjE1cHIydm4xNW55cmZ1cXgifQ.3CXp0GaWY1S7iMcPP8n9Iw'
     tile_input = 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + str(key)
@@ -794,24 +840,24 @@ def map3(request):
     d = 0
 
 
-    if a != -1:
+##    if a != -1:
+##
+##     a = round(a,-1)
+##
+##     if a in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]:
+##         df2 = read_data('age/age_'+str(a)+'.geojson')
+##
+##     else:
+##         #get closest number in list
+##         minus = [x-a for x in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]]
+##         get_min = min(minus)
+##         a = get_min
+##         df2 = read_data('age/age_'+str(a)+'.geojson')
 
-     a = round(a,-1)
-
-     if a in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]:
-         df2 = read_data('age/age_'+str(a)+'.geojson')
-
-     else:
-         #get closest number in list
-         minus = [x-a for x in [160, 130, 100, 70, 40, 10, 140, 110, 80, 50, 20, 150, 120, 90, 60, 30]]
-         get_min = min(minus)
-         a = get_min
-         df2 = read_data('age/age_'+str(a)+'.geojson')
-
-     df2['dissolvefield'] = [1]*len(df2)
-     df2 = df2.dissolve(by='dissolvefield').dissolve() #.unary_union
+    df2['dissolvefield'] = [1]*len(df2)
+    df2 = df2.dissolve(by='dissolvefield').dissolve() #.unary_union
      
-     print('Age complete') 
+    print('Age complete') 
 
 
     if t != -1:
