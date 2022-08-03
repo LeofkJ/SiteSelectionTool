@@ -1,0 +1,112 @@
+[
+    {
+        "stepTitle": "Aerial Survey Data",
+        "options":[
+            {
+                "description": "Choose an insect: ",
+                "type": "Dropdown",
+                "choices": ["Spruce Budworm", "Jack Pine Budworm"]
+            },
+            {
+                "description": "Choose damage type: ",
+                "type": "Dropdown",
+                "choices": ["Light", "Moderate-Severe", "Mortality"]
+            },
+            {
+                "description": "Select year: ",
+                "type": "Slider",
+                "minimum": 2009,
+                "maximum": 2020,
+                "step": 1
+            }
+        ]
+    },
+    {
+        "stepTitle": "Species Abundance",
+        "options":[
+            {
+                "description": "Host species: ",
+                "type": "Dropdown",
+                "choices": ["Jack Pine", "Balsam Fir", "White Spruce", "Black Spruce", "All SBW Host Species"]
+            },
+            {
+                "description": "Host species threshold (>= % basal area): ",
+                "type": "Slider",
+                "minimum": 20,
+                "maximum": 100,
+                "step": 10
+            },
+            {
+                "description": "Data source: ",
+                "type": "Dropdown",
+                "choices": ["Beaudoin"]
+            }
+        ]
+    },
+    {
+        "stepTitle": "Stand Age",
+        "options":[
+            {
+                "description": "Submit the prefered age of stand: ",
+                "type": "Slider",
+                "minimum": 50,
+                "maximum": 160,
+                "step": 10
+            },
+            {
+                "description": "Data source: ",
+                "type": "Dropdown",
+                "choices": ["Beaudoin"]
+            }
+        ]
+    },
+    {
+        "stepTitle": "All Possible Sites",
+        "options":[]
+    },
+    {
+        "stepTitle": "Refine Further",
+        "options":[
+            {
+                "description": "Submit the first year of fires to exclude: ",
+                "type": "Slider",
+                "minimum": 1996,
+                "maximum": 2020,
+                "step": 1
+            },
+            {
+                "description": "Submit the second year of fires to exclude: ",
+                "type": "Slider",
+                "minimum": 1996,
+                "maximum": 2020,
+                "step": 1
+            },
+            {
+                "description": "Enter minimum area of site (km2): ",
+                "type": "Slider",
+                "minimum": 0,
+                "maximum": 5,
+                "step": 0.1
+            },
+            {
+                "description": "Enter maximum distance to road (km): ",
+                "type": "Slider",
+                "minimum": 0.5,
+                "maximum": 3,
+                "step": 0.5
+            }
+        ]
+    },
+    {
+        "stepTitle": "Optimize",
+        "options":[
+            {
+                "description": "Number of sites to export (optimized for Euclidean distance): ",
+                "type": "Slider",
+                "minimum": 2,
+                "maximum": 10,
+                "step": 1
+            }
+        ]
+    }
+]

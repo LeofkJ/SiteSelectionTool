@@ -1,4 +1,6 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django.contrib.postgres.fields import ArrayField
 from django import forms
 import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geospatialproject.settings")
 
@@ -64,3 +66,24 @@ class EXPORT(models.Model):
     
 class FORCE(models.Model):
     action = models.CharField(max_length=10,default='No')
+
+
+class PAGE(models.Model):
+    title = models.TextField(default='Step Title')
+
+class OPTION(models.Model):
+
+        class TYPES(models.TextChoices):
+            DROPDOWN = "DDN", _('Dropdown')
+            SLIDER = "SLD", _('Slider')
+
+        page = models.ForeignKey(PAGE, related_name='options', on_delete=models.CASCADE)
+        description = models.TextField(default='Default description')
+        types = models.CharField(max_length=3, choices=TYPES.choices, default=TYPES.DROPDOWN)
+        minimum = models.FloatField(blank=True, null=True)
+        maximum = models.FloatField(blank=True, null=True)
+        step = models.FloatField(blank=True, null=True)
+
+class CHOICE(models.Model):
+    choice = models.CharField(max_length=100)
+    option = models.ForeignKey(OPTION, related_name='choices', on_delete=models.CASCADE)

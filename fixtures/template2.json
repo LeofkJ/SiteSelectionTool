@@ -1,0 +1,164 @@
+[
+    {
+        "model": "sitemap.PAGE",
+        "pk": 1,
+        "fields": {
+            "title": "Aerial Survey Data"
+        }
+    },
+    {
+        "model": "sitemap.PAGE",
+        "pk": 2,
+        "fields": {
+            "title": "Species Abundance"
+        }
+    },
+    {
+        "model": "sitemap.OPTION",
+        "pk": 3,
+        "fields": {
+            "page": 1,
+            "description": "Choose an insect:",
+            "types": "DDN"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 4,
+        "fields" : {
+            "option": 3,
+            "choice": "Spruce Budworm"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 5,
+        "fields" : {
+            "option": 3,
+            "choice": "Jack Pine Budworm"
+        }
+    },
+    {
+        "model": "sitemap.OPTION",
+        "pk": 6,
+        "fields": {
+            "page": 1,
+            "description": "Choose damage type:",
+            "types": "DDN"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 7,
+        "fields" : {
+            "option": 6,
+            "choice": "Light"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 8,
+        "fields" : {
+            "option": 6,
+            "choice": "Moderate-Severe"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 9,
+        "fields" : {
+            "option": 6,
+            "choice": "Mortality"
+        }
+    },
+    {
+        "model": "sitemap.OPTION",
+        "pk": 10,
+        "fields": {
+            "page": 1,
+            "description": "Select year:",
+            "types": "SLD",
+            "minimum": 2009,
+            "maximum": 2021,
+            "step": 1 
+        }
+    },
+    {
+        "model": "sitemap.OPTION",
+        "pk": 11,
+        "fields": {
+            "page": 2,
+            "description": "Host Species:",
+            "types": "DDN"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 12,
+        "fields" : {
+            "option": 11,
+            "choice": "Jack Pine"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 13,
+        "fields" : {
+            "option": 11,
+            "choice": "Balsam Fir"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 14,
+        "fields" : {
+            "option": 11,
+            "choice": "White Spruce"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 15,
+        "fields" : {
+            "option": 11,
+            "choice": "Black Spruce"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 16,
+        "fields" : {
+            "option": 11,
+            "choice": "All SBW Host Species"
+        }
+    },
+    {
+        "model": "sitemap.OPTION",
+        "pk": 17,
+        "fields": {
+            "page": 2,
+            "description": "Host species threshold (>= % basal area):",
+            "types": "SLD",
+            "minimum": 20,
+            "maximum": 100,
+            "step": 10
+        }
+    },
+    {
+        "model": "sitemap.OPTION",
+        "pk": 18,
+        "fields": {
+            "page": 2,
+            "description": "Data Source:",
+            "types": "DDN"
+        }
+    },
+    {
+        "model": "sitemap.CHOICE",
+        "pk": 19,
+        "fields" : {
+            "option": 18,
+            "choice": "Beaudoin"
+        }
+    }
+]

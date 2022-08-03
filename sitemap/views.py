@@ -6,6 +6,7 @@ import folium
 import geopandas as gpd
 import pandas as pd
 from ortools.linear_solver import pywraplp
+import json
 import math
 import os
 from .forms import test_form
@@ -30,6 +31,8 @@ from .models import AGEOM
 from .models import ASM_Geom
 from .models import EXPORT
 from .models import FORCE
+from .models import PAGE
+from .models import OPTION
 import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geospatialproject.settings")
 
 # Create your views here.
@@ -190,7 +193,75 @@ def optimize_for_site(site,dictionary_list,n):
 
     
     return float(solver.Objective().Value()),information
+
+def build_page_context(pageNum):
+    page = PAGE.objects.get(pk=pageNum)
+    options = page.options.all()
+    numOptions = len(options)
+    context = {
+        'pageNum': pageNum,
+        'stepTitle': page.title,
+        'numOptions': numOptions,
+        'options': []
+        }
+
+
+    for i in range(numOptions):
+        option = options[i]
+        choices = option.choices.all()
+        numChoices = len(choices)
+        optionType = option.types
+
+        new_dict = {
+            'description': option.description,
+            'type': optionType,
+            'numChoices': numChoices,
+            'minimum': json.dumps(option.minimum),
+            'maximum': json.dumps(option.maximum),
+            'step': json.dumps(option.step),
+            'choices': []
+        }
+
+        if optionType == "DDN":
+            new_dict["default"] = choices[0].choice
+        elif optionType == "SLD":
+            new_dict["default"] = option.minimum
+
+        for j in range(numChoices):
+            choice = choices[j]
+            new_dict['choices'].append(choice.choice)
+
+        context["options"].append(new_dict)
+    
+    return context
+
+def update_context_with_defaults(pageNum, context, post):
+    page = PAGE.objects.get(pk=pageNum)
+    options = page.options.all()
+    numOptions = len(options)
+    for i in range(numOptions):
+        option = options[i]
+        context["options"][i]["default"] = post[option.description]
+
+    return context
+
       
+def get_pages(request):
+    pageNum = request.POST.get('pageNum')
+    nextStep = request.POST.get('submit') == "nextStep"
+    if pageNum == None:
+        pageNum = 1
+    if nextStep:
+        pageNum = int(pageNum) + 1
+    print(pageNum)
+    context = build_page_context(pageNum)
+
+    if request.method == "POST" and not nextStep:
+        print(request.POST)
+        context = update_context_with_defaults(pageNum, context, request.POST)
+    
+    print(context)
+    return render(request,'index.html',context)
 
 def index(request):
 

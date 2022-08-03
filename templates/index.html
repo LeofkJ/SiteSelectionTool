@@ -2,93 +2,161 @@
 
 {% block content %}
 
-<div class ="container" mt-3 pt-3>
+<form method="POST" id = "formElement" action="{% url 'index' %}">{% csrf_token %}
+<div class ="container"  id = "container">
+	<script>
+		var para = document.createElement("div");
+		var text = "Step {{ pageNum | safe}}: {{ stepTitle  | safe}}"
+		var node = document.createTextNode(text);
+		para.appendChild(node);
 
-<div class= "row">
+		var fakeInput = document.createElement("input");
+		fakeInput.setAttribute("name", "pageNum");
+		fakeInput.setAttribute("value", {{ pageNum | safe}});
+		fakeInput.setAttribute("type", "hidden");
 
-<div class= "col-md-3">		
-
-		<p>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		<br>
-		
-		</p>
-		
-			
-	<h3>Enter Information</h3>
+		para.appendChild(fakeInput);
 	
-		<p>
-		
-		
-		</p>
-	
-<form method="POST" action="{% url 'index' %}">{% csrf_token %}
-		<label for="insect">Choose an insect:</label>
-		<select id="insect" name="insect">
-        <option value="Spruce Budworm">Spruce Budworm</option>
-		<option value="Jack Pine Budworm">Jack Pine Budworm</option>
-		</select>
+		var element = document.getElementById("container");
+		element.appendChild(para);
+
+		var options = {{options | safe}}
+
+		console.log(options)
+		options.forEach(option => {
+			para.appendChild(document.createElement("br"));
+			var selectLabel = document.createElement("label");
+			selectLabel.setAttribute("for", option.description)
+			selectLabel.appendChild(document.createTextNode(option.description))
+			para.appendChild(selectLabel);
+
+			if(option.type == "DDN"){
+				var selectElement = document.createElement("select");
+				selectElement.setAttribute("name", option.description)
+				selectElement.id = option.description;
+				para.appendChild(selectElement);
+
+				for (var i = 0; i < option.choices.length; i++) {
+					var optionElement = document.createElement("option");
+					if (option.choices[i] == option.default){
+						optionElement.setAttribute("selected", "selected")
+					}
+					optionElement.value = option.choices[i];
+					optionElement.text = option.choices[i];
+					selectElement.appendChild(optionElement);
+				}
+			} else {
+				console.log(option.default)
+				var inputElement = document.createElement("input")
+				inputElement.setAttribute("type", "range")
+				inputElement.setAttribute("name", option.description)
+				inputElement.defaultValue = option.default
+				inputElement.setAttribute("min", option.minimum)
+				inputElement.setAttribute("max", option.maximum)
+				inputElement.setAttribute("step", option.step)
+				inputElement.setAttribute("oninput", "this.nextElementSibling.value = this.value")
+				var outputElement = document.createElement("output")
+				var node = document.createTextNode(option.default);
+				outputElement.appendChild(node);
+				para.appendChild(inputElement);
+				para.appendChild(outputElement)
+			}
+		});
+		// for(let i = 0; i < "{{numOptions | safe}}"; i++){
+		//  	var my_list = {{ option1 |safe }};
 
 
-		<p>
+		//  	console.log(my_list)
+		// }
+	</script>
+	<style>
+		input[type="range"] {
+		  -webkit-appearance: none;
+		  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+		  width: 85%;
+		  height: 1em;
+		  margin: 0;
+		  padding: 0;
+		  border: none;
+		  border-radius: .3em;
+		  background-color: #222222;
+		  background: linear-gradient(#333333, #222222);
+		  outline: none;
+		  font: 1em trebuchet ms, verdana, arial, sans-serif;
+		  cursor: pointer;
+		}
 		
+		input[type="range"]::-moz-range-track {
+		  border: inherit;
+		  background: transparent;
+		}
 		
-		</p>
-		<label for="dtype">Choose damage type:</label>
-		<select id="dtype" name="dtype">
-        <option value="Light">Light</option>
-		<option value="Moderate-Severe">Moderate-Severe</option>
-		<option value="Mortality">Mortality</option>
-		</select>
+		input[type="range"]::-ms-track {
+		  border: inherit;
+		  color: transparent;
+		  background: transparent;
+		}
 		
-		<p>
+		input[type="range"]::-ms-fill-lower,
+		input[type="range"]::-ms-fill-upper {
+		  background: transparent;
+		}
 		
+		input[type="range"]::-ms-tooltip {
+		  display: none;
+		}
 		
-		</p>
+		input[type="range"]::-moz-range-thumb {
+		  width: 1em;
+		  height: 1em;
+		  border-radius: .3em;
+		  border: none;
+		  background-image: linear-gradient(to bottom, #27AE60 0, #27AE60 100%);
+		}
 		
-		<label for="year">Select year:</label>
-		<select id="year" name="year">
-        <option value="2021">2021</option>
-		<option value="2020">2020</option>
-		<option value="2019">2019</option>
-		<option value="2018">2018</option>
-		<option value="2017">2017</option>
-		<option value="2016">2016</option>
-		<option value="2015">2015</option>
-		<option value="2014">2014</option>
-		<option value="2013">2013</option>
-		<option value="2012">2012</option>
-		<option value="2011">2011</option>
-		<option value="2010">2010</option>
-		<option value="2009">2009</option>
+		input[type="range"]::-webkit-slider-thumb {
+		  -webkit-appearance: none;
+		  width: 1em;
+		  height: 1em;
+		  border-radius: .3em;
+		  border: none;
+		  background-image: linear-gradient(to bottom, #27AE60 0, #27AE60 100%);
+		  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #27AE60), color-stop(100%, #27AE608));
+		  background-image: -webkit-linear-gradient(top, #27AE60 0, #27AE60 100%);
+		}
 		
-		</select>
+		input[type="range"]::-ms-thumb {
+		  width: 1em;
+		  height: 1em;
+		  border-radius: .3em;
+		  border: 0;
+		  background-image: linear-gradient(to bottom, #27AE60 0, #27AE60 100%);
+		}
+		</style>
 
-
-
-        <input type="submit" name="submit">
+<input type="submit" name="submit">
+</div>
 </form>
 
+<form method="POST" id = "nextStep" action="{% url 'index' %}">{% csrf_token %}
+	<div class ="container"  id = "container">
+		<script>
+			var para = document.createElement("div");
 
+			var pageNumInput = document.createElement("input");
+			pageNumInput.setAttribute("name", "pageNum");
+			pageNumInput.setAttribute("value", {{ pageNum | safe}});
+			pageNumInput.setAttribute("type", "hidden");
 
-</div>
+			para.appendChild(pageNumInput);
 
-<div class= "col-md-8">
-	<h3 class="text-center">Selected ASM Data</h3>
-	
-	{{m  | safe}}
+			var element = document.getElementById("nextStep");
+			element.appendChild(para);
+		</script>
+		<input type="submit" name="submit" value="nextStep">
+	</div>
+</form>
 
-</div>
-
-</div>
-
-</div>
 
 {% endblock %} 
 
