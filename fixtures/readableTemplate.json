@@ -1,20 +1,25 @@
 [
     {
         "stepTitle": "Aerial Survey Data",
+        "operationType": "attributeSelection",
+        "betweenStepOperation": null,
         "options":[
             {
                 "description": "Choose an insect: ",
                 "type": "Dropdown",
-                "choices": ["Spruce Budworm", "Jack Pine Budworm"]
+                "file": "insect_",
+                "choices": [["Spruce Budworm", "sb"], ["Jack Pine Budworm", "jpb"]]
             },
             {
                 "description": "Choose damage type: ",
                 "type": "Dropdown",
+                "attribute": "RANKING",
                 "choices": ["Light", "Moderate-Severe", "Mortality"]
             },
             {
                 "description": "Select year: ",
                 "type": "Slider",
+                "attribute": "EVENT_YEAR",
                 "minimum": 2009,
                 "maximum": 2020,
                 "step": 1
@@ -23,53 +28,59 @@
     },
     {
         "stepTitle": "Species Abundance",
+        "operationType": "fileSelection",
+        "betweenStepOperation": "clip",
         "options":[
             {
                 "description": "Host species: ",
                 "type": "Dropdown",
-                "choices": ["Jack Pine", "Balsam Fir", "White Spruce", "Black Spruce", "All SBW Host Species"]
+                "file": "",
+                "choices": [["Jack Pine", "jack_pine"],
+                ["Balsam Fir", "balsam_fir"], 
+                ["White Spruce", "white_spruce"], 
+                ["Black Spruce", "black_spruce"],
+                ["All SBW Host Species", "all_host"]]
             },
             {
                 "description": "Host species threshold (>= % basal area): ",
                 "type": "Slider",
-                "minimum": 20,
+                "file": "/spec_",
+                "minimum": 10,
                 "maximum": 100,
                 "step": 10
-            },
-            {
-                "description": "Data source: ",
-                "type": "Dropdown",
-                "choices": ["Beaudoin"]
             }
         ]
     },
     {
         "stepTitle": "Stand Age",
+        "operationType": "fileSelection",
+        "betweenStepOperation": "intersection",
         "options":[
             {
                 "description": "Submit the prefered age of stand: ",
                 "type": "Slider",
+                "file": "insect/bla/",
                 "minimum": 50,
                 "maximum": 160,
                 "step": 10
-            },
-            {
-                "description": "Data source: ",
-                "type": "Dropdown",
-                "choices": ["Beaudoin"]
             }
         ]
     },
     {
         "stepTitle": "All Possible Sites",
+        "operationType": null,
+        "betweenStepOperation": null,
         "options":[]
     },
     {
         "stepTitle": "Refine Further",
+        "operationType": "fileSelection",
+        "betweenStepOperation": "intersection",
         "options":[
             {
                 "description": "Submit the first year of fires to exclude: ",
                 "type": "Slider",
+                "file": "insect/bla/",
                 "minimum": 1996,
                 "maximum": 2020,
                 "step": 1
@@ -77,6 +88,7 @@
             {
                 "description": "Submit the second year of fires to exclude: ",
                 "type": "Slider",
+                "file": "insect/bla/",
                 "minimum": 1996,
                 "maximum": 2020,
                 "step": 1
@@ -84,6 +96,7 @@
             {
                 "description": "Enter minimum area of site (km2): ",
                 "type": "Slider",
+                "file": "insect/bla/",
                 "minimum": 0,
                 "maximum": 5,
                 "step": 0.1
@@ -91,6 +104,7 @@
             {
                 "description": "Enter maximum distance to road (km): ",
                 "type": "Slider",
+                "file": "insect/bla/",
                 "minimum": 0.5,
                 "maximum": 3,
                 "step": 0.5
@@ -99,10 +113,13 @@
     },
     {
         "stepTitle": "Optimize",
+        "operationType": "fileSelection",
+        "betweenStepOperation": "intersection",
         "options":[
             {
                 "description": "Number of sites to export (optimized for Euclidean distance): ",
                 "type": "Slider",
+                "file": "insect/bla/",
                 "minimum": 2,
                 "maximum": 10,
                 "step": 1

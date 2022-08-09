@@ -70,6 +70,8 @@ class FORCE(models.Model):
 
 class PAGE(models.Model):
     title = models.TextField(default='Step Title')
+    betweenStepOperation = models.TextField(null=True)
+    operationType = models.TextField(null=True)
 
 class OPTION(models.Model):
 
@@ -79,6 +81,9 @@ class OPTION(models.Model):
 
         page = models.ForeignKey(PAGE, related_name='options', on_delete=models.CASCADE)
         description = models.TextField(default='Default description')
+        geoFile = models.TextField(null=True)
+        attribute = models.TextField(null=True)
+
         types = models.CharField(max_length=3, choices=TYPES.choices, default=TYPES.DROPDOWN)
         minimum = models.FloatField(blank=True, null=True)
         maximum = models.FloatField(blank=True, null=True)
@@ -86,4 +91,5 @@ class OPTION(models.Model):
 
 class CHOICE(models.Model):
     choice = models.CharField(max_length=100)
+    choiceCode = models.CharField(max_length=100, null=True)
     option = models.ForeignKey(OPTION, related_name='choices', on_delete=models.CASCADE)

@@ -15,7 +15,9 @@ def convertTemplate():
             "model": "sitemap.PAGE",
             "pk": i,
             "fields": {
-                "title": page["stepTitle"]
+                "title": page["stepTitle"],
+                "betweenStepOperation": page["betweenStepOperation"],
+                "operationType": page["operationType"]
             }})
         for option in page["options"]:
 
@@ -40,6 +42,9 @@ def convertTemplate():
                     "types": translatedType
                 }
             }
+
+            optionDict["fields"]["geoFile"] = option["file"] if "file" in option else None
+            optionDict["fields"]["attribute"] = option["attribute"] if "attribute" in option else None
             
             if translatedType == "SLD":
                 optionDict["fields"]["minimum"] = option["minimum"]
@@ -49,12 +54,19 @@ def convertTemplate():
             elif translatedType == "DDN":
                 newDict.append(optionDict)
                 for choice in option["choices"]:
+                    displayChoice = choice
+                    codeChoice = choice
+                    if type(choice) == list:
+                        displayChoice = choice[0]
+                        codeChoice = choice[1]
+
                     newDict.append({
                         "model": "sitemap.CHOICE",
                         "pk": pkIndex,
                         "fields" : {
                             "option": optionPk,
-                            "choice": choice
+                            "choice": displayChoice,
+                            "choiceCode": codeChoice
                         }
                     })
                     pkIndex += 1

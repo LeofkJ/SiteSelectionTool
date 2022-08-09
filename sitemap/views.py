@@ -33,6 +33,7 @@ from .models import EXPORT
 from .models import FORCE
 from .models import PAGE
 from .models import OPTION
+from .models import CHOICE
 import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geospatialproject.settings")
 
 # Create your views here.
@@ -245,6 +246,79 @@ def update_context_with_defaults(pageNum, context, post):
 
     return context
 
+def get_empty_map():
+    key = 'pk.eyJ1IjoiY2xhcmFyaXNrIiwiYSI6ImNrbjk5cGxoMjE1cHIydm4xNW55cmZ1cXgifQ.3CXp0GaWY1S7iMcPP8n9Iw'
+    tile_input = 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + str(key)
+
+    return folium.Map(location=[48.63290858589535,-83.671875],zoom_start=5,control_scale=True,tiles=tile_input,attr='Mapbox',API_key = key,prefer_canvas=True)
+
+def get_choiceCode(option, selection):
+    return option.choices.get(choice=selection).choiceCode
+
+def get_map(pageNum, post):
+    print(post)
+    page = PAGE.objects.get(pk=pageNum)
+    options = page.options.all()
+    numOptions = len(options)
+
+    # We assume that the option with an associated geojson file is the first one. Remaining ones should
+    # have attributes to select from the geojson file
+
+    firstOption = options[0]
+
+    data = None
+
+    geoMap = get_empty_map()
+    
+    geoFile = firstOption.geoFile + get_choiceCode(firstOption, post[firstOption.description])
+
+    if page.operationType == "attributeSelection":
+        geoFile += ".geojson"
+
+        data = read_data(geoFile)
+
+        for i in range(1, numOptions):
+            option = options[i]
+
+            selection = post[option.description]
+            if option.types == "SLD":
+                selection = float(selection)
+
+            data = data[data[option.attribute] == selection]
+    elif page.operationType == "fileSelection":
+        for i in range(1, numOptions):
+            option = options[i]
+            selection = post[option.description]
+
+            if option.types == "SLD":
+                geoFile += option.geoFile + selection
+            else:
+                geoFile += option.geoFile + get_choiceCode(option, selection)
+
+        geoFile += ".geojson"
+        
+        try:
+            data = read_data(geoFile)
+        except:
+            data = None
+
+    if data == None:
+        return geoMap._repr_html_()
+
+
+    save_data = data.dissolve()['geometry']
+
+
+
+    for _, row in data.iterrows():
+
+        sim_geo = gpd.GeoSeries(row['geometry']).simplify(tolerance=1)
+        geo_j = sim_geo.to_json()
+        geo_j = folium.GeoJson(data=geo_j,
+                    style_function=lambda x: {'fillColor': 'green','color': 'green'})
+        geo_j.add_to(geoMap)
+
+    return geoMap._repr_html_()
       
 def get_pages(request):
     pageNum = request.POST.get('pageNum')
@@ -256,12 +330,114 @@ def get_pages(request):
     print(pageNum)
     context = build_page_context(pageNum)
 
-    if request.method == "POST" and not nextStep:
-        print(request.POST)
-        context = update_context_with_defaults(pageNum, context, request.POST)
+    context["map"] = get_empty_map()._repr_html_()
+    if request.method == "POST":    
+        if not nextStep:
+            context = update_context_with_defaults(pageNum, context, request.POST)
+            context["map"] = get_map(pageNum, request.POST)
     
     print(context)
     return render(request,'index.html',context)
+
+
+    ########################## TRYING TO MAKE THIS GEODATA STUFF WORK
+    insect,damageType,eventYear = test_form(request)
+    form = HomeForm(request.POST)
+
+    if form.is_valid():
+        
+        try:
+            insect = str(insect)
+            damageType = str(damageType)
+            eventYear = int(eventYear)
+        except:
+            insect=-1
+            damageType=-1
+            eventYear=-1
+
+    if insect != -1 and insect is not None:
+        try: 
+            inst_ini = ASM.objects.get(id=1)
+        except:
+            if eventYear is not None: 
+                inst = ASM.objects.create(insect=insect,dtype=damageType,year=eventYear)
+                inst_ini = ASM.objects.get(id=1)
+            else:
+                inst = ASM.objects.create(insect='Jack Pine Budworm',dtype='Mortality',year=2018)
+                inst_ini = ASM.objects.get(id=1)          
+
+        if inst_ini == None: 
+        
+            inst_ini = ASM.objects.create(insect=insect,dtype=damageType,year=eventYear)
+
+        else:
+
+            inst_ini.insect = insect
+
+            inst_ini.dtype = damageType
+
+            inst_ini.year = eventYear
+            inst_ini.save(update_fields=['insect','dtype','year'])
+    
+
+    key = 'pk.eyJ1IjoiY2xhcmFyaXNrIiwiYSI6ImNrbjk5cGxoMjE1cHIydm4xNW55cmZ1cXgifQ.3CXp0GaWY1S7iMcPP8n9Iw'
+    tile_input = 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + str(key)
+
+        
+        
+
+    m = folium.Map(location=[48.63290858589535,-83.671875],zoom_start=5,control_scale=True,tiles=tile_input,attr='Mapbox',API_key = key,prefer_canvas=True)
+    d = 0
+    df = gpd.GeoDataFrame()
+    print(insect)
+    if insect == 'Jack Pine Budworm' or insect == 'Spruce Budworm':
+         print('ok')
+         if insect == 'Jack Pine Budworm':
+             df = read_data('all_jpb_website_s2_fix.geojson')
+         if insect == 'Spruce Budworm':
+             df = read_data('sbw_005_fix_correct.geojson')
+             print(df)
+             
+         df = df[df['RANKING'] == damageType]
+         df = df[df['EVENT_YEAR'] == eventYear]
+         d = len(df)
+
+         df_save = df.dissolve()
+         df_save = df_save['geometry']
+
+         try: 
+             inst_ini = ASM_Geom.objects.get(id=1)
+         except:
+             inst_ini = None
+         if inst_ini == None and len(df_save) > 0:         
+             inst = ASM_Geom.objects.create(asm_geom=str(df_save[0]))
+        
+         elif len(df_save) < 0:
+             inst_ini = None
+         else:
+             try:
+                 inst_ini.asm_geom = str(df_save[0])
+                 inst_ini.save(update_fields=['asm_geom'])
+             except:
+                 inst_ini = None
+         
+         for _, r in df.iterrows():
+
+              sim_geo = gpd.GeoSeries(r['geometry']).simplify(tolerance=1)
+              geo_j = sim_geo.to_json()
+              geo_j = folium.GeoJson(data=geo_j,
+                           style_function=lambda x: {'fillColor': 'green','color': 'green'})
+              geo_j.add_to(m)
+    m = m._repr_html_() #HTML representation of original m
+    context = {
+
+        'm': m,
+        'd': d,
+
+        }
+
+
+    ##########################
 
 def index(request):
 
@@ -269,21 +445,21 @@ def index(request):
     #if form.is_valid():
          #form.save()
 
-    b,r,y = test_form(request)
+    insect,r,y = test_form(request)
     form = HomeForm(request.POST)
 
     if form.is_valid():
         
         try:
-            b = str(b)
+            insect = str(insect)
             r = str(r)
             y = int(y)
         except:
-            b=-1
+            insect=-1
             r=-1
             y=-1
 
-    if b != -1 and b is not None:
+    if insect != -1 and insect is not None:
         try: 
             inst_ini = ASM.objects.get(id=1)
         except:
@@ -296,11 +472,11 @@ def index(request):
 
         if inst_ini == None: 
         
-            inst_ini = ASM.objects.create(insect=b,dtype=r,year=y)
+            inst_ini = ASM.objects.create(insect=insect,dtype=r,year=y)
 
         else:
 
-            inst_ini.insect = b
+            inst_ini.insect = insect
 
             inst_ini.dtype = r
 
@@ -317,12 +493,12 @@ def index(request):
     m = folium.Map(location=[48.63290858589535,-83.671875],zoom_start=5,control_scale=True,tiles=tile_input,attr='Mapbox',API_key = key,prefer_canvas=True)
     d = 0
     df = gpd.GeoDataFrame()
-    print(b)
-    if b == 'Jack Pine Budworm' or b == 'Spruce Budworm':
+    print(insect)
+    if insect == 'Jack Pine Budworm' or insect == 'Spruce Budworm':
          print('ok')
-         if b == 'Jack Pine Budworm':
+         if insect == 'Jack Pine Budworm':
              df = read_data('all_jpb_website_s2_fix.geojson')
-         if b == 'Spruce Budworm':
+         if insect == 'Spruce Budworm':
              df = read_data('sbw_005_fix_correct.geojson')
              print(df)
              
