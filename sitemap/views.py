@@ -5,6 +5,8 @@ from django.utils.encoding import smart_str
 import folium
 import geopandas as gpd
 import pandas as pd
+from shapely import wkt
+import uuid
 from ortools.linear_solver import pywraplp
 import json
 import math
@@ -255,8 +257,78 @@ def get_empty_map():
 def get_choiceCode(option, selection):
     return option.choices.get(choice=selection).choiceCode
 
-def get_map(pageNum, post):
-    print(post)
+def save_cached_map(uuid):
+    geometry = GEOM.objects.get(uuid = uuid)
+    geometry.geometry = geometry.cachedGeometry
+    geometry.save()
+
+def clear_map(uuid):
+    try:
+        geometry = GEOM.objects.get(uuid = uuid)
+    except:
+        return
+    geometry.delete()
+
+
+def update_map(geoMap, data, operation, uuid):
+    try:
+        geometry = GEOM.objects.get(uuid = uuid)
+    except:
+        for _, row in data.iterrows():
+
+            sim_geo = gpd.GeoSeries(row['geometry']).simplify(tolerance=1)
+            geo_j = sim_geo.to_json()
+            geo_j = folium.GeoJson(data=geo_j,
+                        style_function=lambda x: {'fillColor': 'green','color': 'green'})
+            geo_j.add_to(geoMap)
+        return geoMap, data
+
+    lastMap = wkt.loads(geometry.geometry)
+
+    gdf = gpd.GeoDataFrame(geometry=[lastMap], crs='epsg:4326')
+
+    if operation == "intersection" or operation == None:
+        intersect = data.intersection(gdf['geometry'])
+
+        geo_j = intersect.to_json()
+        geo_j = folium.GeoJson(data=geo_j,
+                    style_function=lambda x: {'fillColor': 'green','color': 'green'})
+        geo_j.add_to(geoMap)
+
+        return geoMap, intersect
+    elif operation == "clip":
+        #return data.clip(gdf['geometry'].unary_union)
+        intersect = data.intersection(gdf['geometry'])
+
+        geo_j = intersect.to_json()
+        geo_j = folium.GeoJson(data=geo_j,
+                    style_function=lambda x: {'fillColor': 'green','color': 'green'})
+        geo_j.add_to(geoMap)
+
+        return geoMap, intersect
+
+def write_or_overwrite_saved_geometry(data, uuid):
+    try:
+        geometry = GEOM.objects.get(uuid = uuid)
+    except:
+        GEOM.objects.create(cachedGeometry=str(data[0]), uuid=uuid)
+        return
+    geometry.cachedGeometry = data[0]
+    geometry.save()
+        
+def select_attribute(data, attributeName, selection, operation):
+    if operation == "EQU":
+        return data[data[attributeName] == selection]
+    elif operation == "GOE":
+        return data[data[attributeName] >= selection]
+    elif operation == "SOE":
+        return data[data[attributeName] <= selection]
+    elif operation == "STG":
+        return data[data[attributeName] > selection]
+    elif operation == "STS":
+        return data[data[attributeName] < selection]
+
+def get_map(pageNum, post, uuid):
     page = PAGE.objects.get(pk=pageNum)
     options = page.options.all()
     numOptions = len(options)
@@ -284,7 +356,8 @@ def get_map(pageNum, post):
             if option.types == "SLD":
                 selection = float(selection)
 
-            data = data[data[option.attribute] == selection]
+            data = select_attribute(data, option.attribute, selection, option.operation)
+            
     elif page.operationType == "fileSelection":
         for i in range(1, numOptions):
             option = options[i]
@@ -300,43 +373,49 @@ def get_map(pageNum, post):
         try:
             data = read_data(geoFile)
         except:
-            data = None
+            return geoMap._repr_html_()
 
-    if data == None:
+    if data.empty:
         return geoMap._repr_html_()
 
+    updatedMap, data = update_map(geoMap, data, page.betweenStepOperation, uuid)
+    
+    try:
+        save_data = data.dissolve()['geometry']
 
-    save_data = data.dissolve()['geometry']
+    except:
+        save_data = data
 
+    write_or_overwrite_saved_geometry(save_data, uuid)
 
-
-    for _, row in data.iterrows():
-
-        sim_geo = gpd.GeoSeries(row['geometry']).simplify(tolerance=1)
-        geo_j = sim_geo.to_json()
-        geo_j = folium.GeoJson(data=geo_j,
-                    style_function=lambda x: {'fillColor': 'green','color': 'green'})
-        geo_j.add_to(geoMap)
-
-    return geoMap._repr_html_()
+    return updatedMap._repr_html_()
       
 def get_pages(request):
+    if not 'uuid' in request.session:
+        request.session['uuid'] = str(uuid.uuid4())
+        
     pageNum = request.POST.get('pageNum')
     nextStep = request.POST.get('submit') == "nextStep"
     if pageNum == None:
         pageNum = 1
     if nextStep:
         pageNum = int(pageNum) + 1
-    print(pageNum)
+        
     context = build_page_context(pageNum)
+
 
     context["map"] = get_empty_map()._repr_html_()
     if request.method == "POST":    
-        if not nextStep:
+        if nextStep:
+            save_cached_map(request.session['uuid'])
+        else:
             context = update_context_with_defaults(pageNum, context, request.POST)
-            context["map"] = get_map(pageNum, request.POST)
+            context["map"] = get_map(pageNum, request.POST, request.session['uuid'])
+    else:
+        if pageNum == 1:
+            clear_map(request.session['uuid'])
+        
     
-    print(context)
     return render(request,'index.html',context)
 
 

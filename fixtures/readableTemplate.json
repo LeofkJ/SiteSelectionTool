@@ -20,6 +20,7 @@
                 "description": "Select year: ",
                 "type": "Slider",
                 "attribute": "EVENT_YEAR",
+                "operation": "=",
                 "minimum": 2009,
                 "maximum": 2020,
                 "step": 1
@@ -29,7 +30,7 @@
     {
         "stepTitle": "Species Abundance",
         "operationType": "fileSelection",
-        "betweenStepOperation": "clip",
+        "betweenStepOperation": "intersection",
         "options":[
             {
                 "description": "Host species: ",
@@ -57,20 +58,20 @@
         "betweenStepOperation": "intersection",
         "options":[
             {
+                "description": "Choose an insect: ",
+                "type": "Dropdown",
+                "file": "age_",
+                "choices": [["Spruce Budworm", "sb"], ["Jack Pine Budworm", "jpb"]]
+            },
+            {
                 "description": "Submit the prefered age of stand: ",
                 "type": "Slider",
-                "file": "insect/bla/",
+                "file": "/age_",
                 "minimum": 50,
                 "maximum": 160,
                 "step": 10
             }
         ]
-    },
-    {
-        "stepTitle": "All Possible Sites",
-        "operationType": null,
-        "betweenStepOperation": null,
-        "options":[]
     },
     {
         "stepTitle": "Refine Further",
@@ -125,5 +126,11 @@
                 "step": 1
             }
         ]
+    },
+    {
+        "stepTitle": "All Possible Sites",
+        "operationType": null,
+        "betweenStepOperation": null,
+        "options":[]
     }
 ]

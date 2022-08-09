@@ -48,6 +48,8 @@ class AGE(models.Model):
 
 class GEOM(models.Model):
     geometry = models.CharField(max_length=5000000,default='PlaceHolder')
+    cachedGeometry = models.CharField(max_length=5000000,default='PlaceHolder')
+    uuid = models.CharField(max_length=100, default='PlaceHolder', unique = True)
 
 class FILTER(models.Model):
     year1 = models.IntegerField(default=2009)
@@ -79,10 +81,18 @@ class OPTION(models.Model):
             DROPDOWN = "DDN", _('Dropdown')
             SLIDER = "SLD", _('Slider')
 
+        class OPERATIONS(models.TextChoices):
+            EQUAL = "EQU", _('Equal')
+            GREATEROREQUAL = "GOE", _('GreaterOrEqual')
+            SMALLEROREQUAL = "SOE", _('SmallerOrEqual')
+            STRICTLYGREATER = "STG", ('StrictlyGreater')
+            STRICLYSMALLER = "STS", ('StrictlySmaller')
+
         page = models.ForeignKey(PAGE, related_name='options', on_delete=models.CASCADE)
         description = models.TextField(default='Default description')
         geoFile = models.TextField(null=True)
         attribute = models.TextField(null=True)
+        operation = models.CharField(max_length=3, choices=OPERATIONS.choices, default=OPERATIONS.EQUAL)
 
         types = models.CharField(max_length=3, choices=TYPES.choices, default=TYPES.DROPDOWN)
         minimum = models.FloatField(blank=True, null=True)

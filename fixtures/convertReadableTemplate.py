@@ -45,6 +45,18 @@ def convertTemplate():
 
             optionDict["fields"]["geoFile"] = option["file"] if "file" in option else None
             optionDict["fields"]["attribute"] = option["attribute"] if "attribute" in option else None
+
+            if "operation" in option:
+                if option["operation"] == "=":
+                    optionDict["fields"]["operation"] = "EQU"
+                elif option["operation"] == ">=":
+                    optionDict["fields"]["operation"] = "GOE"
+                elif option["operation"] == "<=":
+                    optionDict["fields"]["operation"] = "SOE"
+                elif option["operation"] == ">":
+                    optionDict["fields"]["operation"] = "STG"
+                elif option["operation"] == "<":
+                    optionDict["fields"]["operation"] = "STS"
             
             if translatedType == "SLD":
                 optionDict["fields"]["minimum"] = option["minimum"]
