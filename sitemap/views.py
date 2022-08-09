@@ -262,6 +262,20 @@ def save_cached_map(uuid):
     geometry.geometry = geometry.cachedGeometry
     geometry.save()
 
+def get_saved_map(uuid):
+    geoMap = get_empty_map()
+
+    geometry = GEOM.objects.get(uuid = uuid)
+
+    lastMap = wkt.loads(geometry.geometry)
+
+    gdf = gpd.GeoDataFrame(geometry=[lastMap], crs='epsg:4326').to_json()
+
+    geo_j = folium.GeoJson(data=gdf,
+                style_function=lambda x: {'fillColor': 'green','color': 'green'})
+    geo_j.add_to(geoMap)
+    return geoMap._repr_html_()
+
 def clear_map(uuid):
     try:
         geometry = GEOM.objects.get(uuid = uuid)
@@ -394,6 +408,8 @@ def get_pages(request):
     if not 'uuid' in request.session:
         request.session['uuid'] = str(uuid.uuid4())
         
+    uuid = request.session['uuid']
+
     pageNum = request.POST.get('pageNum')
     nextStep = request.POST.get('submit') == "nextStep"
     if pageNum == None:
@@ -407,116 +423,18 @@ def get_pages(request):
     context["map"] = get_empty_map()._repr_html_()
     if request.method == "POST":    
         if nextStep:
-            save_cached_map(request.session['uuid'])
+            save_cached_map(uuid)
+            context["map"] = get_saved_map(uuid)
         else:
             context = update_context_with_defaults(pageNum, context, request.POST)
-            context["map"] = get_map(pageNum, request.POST, request.session['uuid'])
+            context["map"] = get_map(pageNum, request.POST, uuid)
     else:
         if pageNum == 1:
-            clear_map(request.session['uuid'])
+            clear_map(uuid)
         
     
     return render(request,'index.html',context)
 
-
-    ########################## TRYING TO MAKE THIS GEODATA STUFF WORK
-    insect,damageType,eventYear = test_form(request)
-    form = HomeForm(request.POST)
-
-    if form.is_valid():
-        
-        try:
-            insect = str(insect)
-            damageType = str(damageType)
-            eventYear = int(eventYear)
-        except:
-            insect=-1
-            damageType=-1
-            eventYear=-1
-
-    if insect != -1 and insect is not None:
-        try: 
-            inst_ini = ASM.objects.get(id=1)
-        except:
-            if eventYear is not None: 
-                inst = ASM.objects.create(insect=insect,dtype=damageType,year=eventYear)
-                inst_ini = ASM.objects.get(id=1)
-            else:
-                inst = ASM.objects.create(insect='Jack Pine Budworm',dtype='Mortality',year=2018)
-                inst_ini = ASM.objects.get(id=1)          
-
-        if inst_ini == None: 
-        
-            inst_ini = ASM.objects.create(insect=insect,dtype=damageType,year=eventYear)
-
-        else:
-
-            inst_ini.insect = insect
-
-            inst_ini.dtype = damageType
-
-            inst_ini.year = eventYear
-            inst_ini.save(update_fields=['insect','dtype','year'])
-    
-
-    key = 'pk.eyJ1IjoiY2xhcmFyaXNrIiwiYSI6ImNrbjk5cGxoMjE1cHIydm4xNW55cmZ1cXgifQ.3CXp0GaWY1S7iMcPP8n9Iw'
-    tile_input = 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + str(key)
-
-        
-        
-
-    m = folium.Map(location=[48.63290858589535,-83.671875],zoom_start=5,control_scale=True,tiles=tile_input,attr='Mapbox',API_key = key,prefer_canvas=True)
-    d = 0
-    df = gpd.GeoDataFrame()
-    print(insect)
-    if insect == 'Jack Pine Budworm' or insect == 'Spruce Budworm':
-         print('ok')
-         if insect == 'Jack Pine Budworm':
-             df = read_data('all_jpb_website_s2_fix.geojson')
-         if insect == 'Spruce Budworm':
-             df = read_data('sbw_005_fix_correct.geojson')
-             print(df)
-             
-         df = df[df['RANKING'] == damageType]
-         df = df[df['EVENT_YEAR'] == eventYear]
-         d = len(df)
-
-         df_save = df.dissolve()
-         df_save = df_save['geometry']
-
-         try: 
-             inst_ini = ASM_Geom.objects.get(id=1)
-         except:
-             inst_ini = None
-         if inst_ini == None and len(df_save) > 0:         
-             inst = ASM_Geom.objects.create(asm_geom=str(df_save[0]))
-        
-         elif len(df_save) < 0:
-             inst_ini = None
-         else:
-             try:
-                 inst_ini.asm_geom = str(df_save[0])
-                 inst_ini.save(update_fields=['asm_geom'])
-             except:
-                 inst_ini = None
-         
-         for _, r in df.iterrows():
-
-              sim_geo = gpd.GeoSeries(r['geometry']).simplify(tolerance=1)
-              geo_j = sim_geo.to_json()
-              geo_j = folium.GeoJson(data=geo_j,
-                           style_function=lambda x: {'fillColor': 'green','color': 'green'})
-              geo_j.add_to(m)
-    m = m._repr_html_() #HTML representation of original m
-    context = {
-
-        'm': m,
-        'd': d,
-
-        }
-
-
-    ##########################
 
 def index(request):
 
