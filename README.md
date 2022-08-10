@@ -1,4 +1,8 @@
 # select_site
-Tool for selecting insect defoliator fieldwork sites
+Tool for selecting fieldwork sites
 
-URL here: https://select-sites.herokuapp.com/
+# Changing this to fit your needs
+
+You can read more about how to modify a few things to change what you need [here](fixtures/README.md)
+
+

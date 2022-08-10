@@ -43,8 +43,7 @@ import os; os.environ.setdefault("DJANGO_SETTINGS_MODULE", "geospatialproject.se
 
 def read_data(fp):
 
-    jack_pine_abundance = gpd.read_file(fp)
-    return jack_pine_abundance
+    return gpd.read_file(fp)
 
 def get_dist_haversine_polygon(gdf1):
     pdf1 = gdf1.centroid
@@ -198,6 +197,15 @@ def optimize_for_site(site,dictionary_list,n):
     return float(solver.Objective().Value()),information
 
 def build_page_context(pageNum):
+    """Build the context with information about what the current step contains.
+    This information is used by the Front End to know what to display
+
+    Args:
+        pageNum: Step number
+
+    Returns:
+        Context populated with the information required by the Front End to build a page
+    """
     page = PAGE.objects.get(pk=pageNum)
     options = page.options.all()
     numOptions = len(options)
@@ -239,6 +247,17 @@ def build_page_context(pageNum):
     return context
 
 def update_context_with_defaults(pageNum, context, post):
+    """Update all the options default values to be the previously selected values
+    This ensures that the options on the Front-End don't change when the map is updated
+
+    Args:
+        pageNum: Step number
+        context: Context to send to the Front End, already populated
+        post: POST request body, which includes what the user has selected
+
+    Returns:
+        Context with the updated defaults
+    """
     page = PAGE.objects.get(pk=pageNum)
     options = page.options.all()
     numOptions = len(options)
@@ -249,20 +268,52 @@ def update_context_with_defaults(pageNum, context, post):
     return context
 
 def get_empty_map():
+    """Get an empty map to populate (or not) later
+
+    Returns:
+        An empty map
+    """
     key = 'pk.eyJ1IjoiY2xhcmFyaXNrIiwiYSI6ImNrbjk5cGxoMjE1cHIydm4xNW55cmZ1cXgifQ.3CXp0GaWY1S7iMcPP8n9Iw'
     tile_input = 'https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=' + str(key)
 
     return folium.Map(location=[48.63290858589535,-83.671875],zoom_start=5,control_scale=True,tiles=tile_input,attr='Mapbox',API_key = key,prefer_canvas=True)
 
 def get_choiceCode(option, selection):
+    """Helper function to get the choice code for a particular option.
+    The choice code is what will be used to build the path to the geojson file.
+    For example, when the user selects "Jack Pine Budworm", the choice Code could be "jpb"
+
+    Args:
+        option: Which option to get the code for
+        selection: What the user has selected for that option (the choice that was selected)
+
+    Returns:
+        Code for the selected choice
+    """
     return option.choices.get(choice=selection).choiceCode
 
 def save_cached_map(uuid):
+    """Write or Overwrite the user's Saved map with the user's Cached map
+    Is used between steps to allow to come back to the map as it was at the beginning of the step
+
+    Args:
+        uuid: User's ID
+    """
     geometry = GEOM.objects.get(uuid = uuid)
     geometry.geometry = geometry.cachedGeometry
     geometry.save()
 
 def get_saved_map(uuid):
+    """Helper function to get the user's saved map.
+    Assumes the user has a saved map (this is not the cached map)
+    Converts the data saved to the database to an actual map
+
+    Args:
+        uuid: user's ID
+
+    Returns:
+        HTML representation of the user's saved map. Can be added directly to the Context and returned to the Front-End
+    """
     geoMap = get_empty_map()
 
     geometry = GEOM.objects.get(uuid = uuid)
@@ -277,6 +328,11 @@ def get_saved_map(uuid):
     return geoMap._repr_html_()
 
 def clear_map(uuid):
+    """Deletes the user's saved map, if it exists.
+
+    Args:
+        uuid: User's ID
+    """
     try:
         geometry = GEOM.objects.get(uuid = uuid)
     except:
@@ -285,6 +341,18 @@ def clear_map(uuid):
 
 
 def update_map(geoMap, data, operation, uuid):
+    """Update map with new data.
+    If no map is currently saved for the user, make a map with data
+
+    Args:
+        geoMap: Current map
+        data: New data to add to the map
+        operation: What to do with data. Default is "intersection"
+        uuid: User's ID
+
+    Returns:
+        Updated map, Updated data after operation is applied
+    """
     try:
         geometry = GEOM.objects.get(uuid = uuid)
     except:
@@ -321,7 +389,15 @@ def update_map(geoMap, data, operation, uuid):
 
         return geoMap, intersect
 
-def write_or_overwrite_saved_geometry(data, uuid):
+def write_or_overwrite_saved_cached_geometry(data, uuid):
+    """Saves map data to the user's cached geometry object.
+    Creates a geometry object for the user if it doesn't exist, 
+    Otherwise it overwrites the current cached geometry.
+
+    Args:
+        data: geometry data to save. Only the first row is saved (row 0)
+        uuid: User's ID
+    """
     try:
         geometry = GEOM.objects.get(uuid = uuid)
     except:
@@ -331,6 +407,17 @@ def write_or_overwrite_saved_geometry(data, uuid):
     geometry.save()
         
 def select_attribute(data, attributeName, selection, operation):
+    """Helper function to select attributes within the data. Example YEAR attribute >= 2010
+
+    Args:
+        data: Data to parse
+        attributeName: Key of the attribute. Example: YEAR, DATE
+        selection: What argument to use in the selection. Example: 2010 in YEAR >= 2010
+        operation: Which operation to use. Based off CHOICE.OPERATION model. Example "EQU" => ==
+
+    Returns:
+        The rows of data that satisfy the constraints
+    """
     if operation == "EQU":
         return data[data[attributeName] == selection]
     elif operation == "GOE":
@@ -343,12 +430,22 @@ def select_attribute(data, attributeName, selection, operation):
         return data[data[attributeName] < selection]
 
 def get_map(pageNum, post, uuid):
+    """Get a map populated with the geographical data at the current step.
+
+    Args:
+        pageNum: Step number
+        post: POST request body. Usually accessed through request.POST
+        uuid: current user's ID
+
+    Returns:
+        HTML representation of the map. Can be added directly to the Context and returned to the Front-End
+    """
     page = PAGE.objects.get(pk=pageNum)
     options = page.options.all()
     numOptions = len(options)
 
-    # We assume that the option with an associated geojson file is the first one. Remaining ones should
-    # have attributes to select from the geojson file
+    # We assume that the first option provides the base geojson file name. Either the remaining options choose attributes
+    # within the file, or they specify further which file to read
 
     firstOption = options[0]
 
@@ -400,11 +497,19 @@ def get_map(pageNum, post, uuid):
     except:
         save_data = data
 
-    write_or_overwrite_saved_geometry(save_data, uuid)
+    write_or_overwrite_saved_cached_geometry(save_data, uuid)
 
     return updatedMap._repr_html_()
       
 def get_pages(request):
+    """Does all the heavy lifting: Sends the map and building instructions to the Front-End
+
+    Args:
+        request: Django Request.
+
+    Returns:
+        Information required by Django to send the instructions to the Front-End
+    """
     if not 'uuid' in request.session:
         request.session['uuid'] = str(uuid.uuid4())
         

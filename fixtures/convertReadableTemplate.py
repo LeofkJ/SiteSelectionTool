@@ -2,7 +2,7 @@ import json
 
 def convertTemplate():
     pages = []
-    with open('readableTemplate.json') as json_file:
+    with open('readableTemplate.json', 'r') as json_file:
         pages = json.load(json_file)
 
     newDict = []
