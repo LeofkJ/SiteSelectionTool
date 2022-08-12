@@ -2,7 +2,7 @@ import json
 
 def convertTemplate():
     pages = []
-    with open('readableTemplate.json', 'r') as json_file:
+    with open('fixtures/readableTemplate.json', 'r') as json_file:
         pages = json.load(json_file)
 
     newDict = []
@@ -43,7 +43,7 @@ def convertTemplate():
                 }
             }
 
-            optionDict["fields"]["geoFile"] = option["file"] if "file" in option else None
+            optionDict["fields"]["geoFile"] = option["file"] if "file" in option else ""
             optionDict["fields"]["attribute"] = option["attribute"] if "attribute" in option else None
 
             if "operation" in option:
@@ -83,7 +83,7 @@ def convertTemplate():
                     })
                     pkIndex += 1
 
-    with open('template.json', 'w') as outfile:
+    with open('fixtures/template.json', 'w') as outfile:
         json.dump(newDict, outfile)
         
             

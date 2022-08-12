@@ -74,38 +74,55 @@
         ]
     },
     {
-        "stepTitle": "Refine Further",
-        "operationType": "fileSelection",
-        "betweenStepOperation": "intersection",
+        "stepTitle": "Exclude Fires",
+        "operationType": "attributeSelection",
+        "betweenStepOperation": "difference",
         "options":[
             {
-                "description": "Submit the first year of fires to exclude: ",
+                "description": "Starting year of fires to exclude: ",
                 "type": "Slider",
-                "file": "insect/bla/",
+                "file": "fires_flat",
+                "attribute": "YEAR",
+                "operation": ">=",
                 "minimum": 1996,
                 "maximum": 2020,
                 "step": 1
             },
             {
-                "description": "Submit the second year of fires to exclude: ",
+                "description": "Ending year of fires to exclude: ",
                 "type": "Slider",
-                "file": "insect/bla/",
+                "attribute": "YEAR",
+                "operation": "<=",
                 "minimum": 1996,
                 "maximum": 2020,
                 "step": 1
-            },
+            }
+        ]
+    },
+    {
+        "stepTitle": "Minimum area of polygon to consider",
+        "operationType": "areaComputation",
+        "betweenStepOperation": null,
+        "options":[
             {
                 "description": "Enter minimum area of site (km2): ",
                 "type": "Slider",
-                "file": "insect/bla/",
+                "operation": ">=",
                 "minimum": 0,
                 "maximum": 5,
                 "step": 0.1
-            },
+            }
+        ]
+    },
+    {
+        "stepTitle": "Maximum distance to road",
+        "operationType": "buffer",
+        "betweenStepOperation": "clip",
+        "options":[
             {
                 "description": "Enter maximum distance to road (km): ",
                 "type": "Slider",
-                "file": "insect/bla/",
+                "file": "mroads_simple",
                 "minimum": 0.5,
                 "maximum": 3,
                 "step": 0.5
@@ -126,11 +143,5 @@
                 "step": 1
             }
         ]
-    },
-    {
-        "stepTitle": "All Possible Sites",
-        "operationType": null,
-        "betweenStepOperation": null,
-        "options":[]
     }
 ]

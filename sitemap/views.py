@@ -88,6 +88,16 @@ def get_dist_haversine_polygon(gdf1):
 
 
 def optimize_for_site(site,dictionary_list,n):
+    """_summary_
+
+    Args:
+        site: Takes in each site
+        dictionary_list: _description_
+        n: _description_
+
+    Returns:
+        _description_
+    """
 
     information = pd.DataFrame()
     store_pot_site = [] 
@@ -290,7 +300,12 @@ def get_choiceCode(option, selection):
     Returns:
         Code for the selected choice
     """
-    return option.choices.get(choice=selection).choiceCode
+
+    try:
+        choice = option.choices.get(choice=selection)
+    except:
+        return ""
+    return choice.choiceCode
 
 def save_cached_map(uuid):
     """Write or Overwrite the user's Saved map with the user's Cached map
@@ -299,7 +314,10 @@ def save_cached_map(uuid):
     Args:
         uuid: User's ID
     """
-    geometry = GEOM.objects.get(uuid = uuid)
+    try:
+        geometry = GEOM.objects.get(uuid = uuid)
+    except:
+        return
     geometry.geometry = geometry.cachedGeometry
     geometry.save()
 
@@ -316,7 +334,10 @@ def get_saved_map(uuid):
     """
     geoMap = get_empty_map()
 
-    geometry = GEOM.objects.get(uuid = uuid)
+    try:
+        geometry = GEOM.objects.get(uuid = uuid)
+    except:
+        return geoMap._repr_html_()
 
     lastMap = wkt.loads(geometry.geometry)
 
@@ -358,7 +379,7 @@ def update_map(geoMap, data, operation, uuid):
     except:
         for _, row in data.iterrows():
 
-            sim_geo = gpd.GeoSeries(row['geometry']).simplify(tolerance=1)
+            sim_geo = gpd.GeoSeries(row['geometry'])
             geo_j = sim_geo.to_json()
             geo_j = folium.GeoJson(data=geo_j,
                         style_function=lambda x: {'fillColor': 'green','color': 'green'})
@@ -369,7 +390,14 @@ def update_map(geoMap, data, operation, uuid):
 
     gdf = gpd.GeoDataFrame(geometry=[lastMap], crs='epsg:4326')
 
-    if operation == "intersection" or operation == None:
+    if operation == None:
+        geo_j = data.to_json()
+        geo_j = folium.GeoJson(data=geo_j,
+                    style_function=lambda x: {'fillColor': 'green','color': 'green'})
+        geo_j.add_to(geoMap)
+        return geoMap, data
+    elif operation == "intersection":
+        
         intersect = data.intersection(gdf['geometry'])
 
         geo_j = intersect.to_json()
@@ -379,15 +407,25 @@ def update_map(geoMap, data, operation, uuid):
 
         return geoMap, intersect
     elif operation == "clip":
-        #return data.clip(gdf['geometry'].unary_union)
-        intersect = data.intersection(gdf['geometry'])
+        
+        clip = gdf.clip(data['geometry'])
 
-        geo_j = intersect.to_json()
+        geo_j = clip.to_json()
         geo_j = folium.GeoJson(data=geo_j,
                     style_function=lambda x: {'fillColor': 'green','color': 'green'})
         geo_j.add_to(geoMap)
 
-        return geoMap, intersect
+        return geoMap, clip
+    elif operation == "difference":
+
+        difference = gdf.difference(data.dissolve()['geometry'])
+
+        geo_j = difference.to_json()
+        geo_j = folium.GeoJson(data=geo_j,
+                    style_function=lambda x: {'fillColor': 'green','color': 'green'})
+        geo_j.add_to(geoMap)
+
+        return geoMap, difference
 
 def write_or_overwrite_saved_cached_geometry(data, uuid):
     """Saves map data to the user's cached geometry object.
@@ -444,18 +482,18 @@ def get_map(pageNum, post, uuid):
     options = page.options.all()
     numOptions = len(options)
 
-    # We assume that the first option provides the base geojson file name. Either the remaining options choose attributes
-    # within the file, or they specify further which file to read
-
-    firstOption = options[0]
-
     data = None
 
     geoMap = get_empty_map()
     
-    geoFile = firstOption.geoFile + get_choiceCode(firstOption, post[firstOption.description])
-
+    
     if page.operationType == "attributeSelection":
+        
+        firstOption = options[0]
+
+        geoFile = firstOption.geoFile + get_choiceCode(firstOption, post[firstOption.description])
+
+        
         geoFile += ".geojson"
 
         data = read_data(geoFile)
@@ -470,6 +508,10 @@ def get_map(pageNum, post, uuid):
             data = select_attribute(data, option.attribute, selection, option.operation)
             
     elif page.operationType == "fileSelection":
+        firstOption = options[0]
+
+        geoFile = firstOption.geoFile + get_choiceCode(firstOption, post[firstOption.description])
+
         for i in range(1, numOptions):
             option = options[i]
             selection = post[option.description]
@@ -485,6 +527,55 @@ def get_map(pageNum, post, uuid):
             data = read_data(geoFile)
         except:
             return geoMap._repr_html_()
+
+    elif page.operationType == "areaComputation":
+        geometry = GEOM.objects.get(uuid = uuid)
+
+        lastMap = wkt.loads(geometry.geometry)
+
+        data = gpd.GeoDataFrame(geometry=[lastMap], crs='epsg:4326')
+
+        data = data.to_crs('esri:102001')
+
+        data = data.explode(index_parts = False)
+
+        data['area'] = data['geometry'].area / 10**6
+
+        for i in range(numOptions):
+            option = options[i]
+
+            selection = post[option.description]
+
+            if option.types == "SLD":
+                selection = float(selection)
+
+            data = select_attribute(data, "area", selection, option.operation)
+            data = gpd.GeoDataFrame(geometry=data['geometry'], crs='esri:102001')
+        data = data.dissolve()
+        data = data.to_crs('epsg:4326')
+
+    elif page.operationType == "buffer":
+        for i in range(numOptions):
+            option = options[i]
+            geoFile = option.geoFile + ".geojson"
+
+            readData = read_data(geoFile).to_crs('esri:102001')
+
+            selection = post[option.description]
+
+            if option.types == "SLD":
+                selection = float(selection)
+
+            buffer = readData.geometry.buffer(selection * 1000).unary_union
+
+            buffer_df = gpd.GeoDataFrame(geometry=[buffer], crs='esri:102001')
+
+            if data == None:
+                data = buffer_df
+            else:
+                data = data.union(buffer_df)
+            data = data.dissolve()
+            data = data.to_crs('epsg:4326')
 
     if data.empty:
         return geoMap._repr_html_()
@@ -1514,7 +1605,7 @@ def map5(request):
     except:
         gdf = gpd.GeoDataFrame()
 
-    e = test_form5(request)
+    e = test_form5(request) #numSites
 
     print(e)
 
@@ -1549,24 +1640,24 @@ def map5(request):
 
     if e > 0 and len(gdf) > 0:
         from ortools.linear_solver import pywraplp
-        gdf['dissolvefield'] = 1
-        dgdf = gdf.buffer(0.0001)
+        
+        dgdf = gdf.buffer(0.0001) # This solves Ring intersection error (or something). Bug
         
         dgdf = gpd.GeoDataFrame(geometry=dgdf)
-        dgdf['dissolvefield'] = 1
+        dgdf['dissolvefield'] = 1  #All polygons are separate, this dissolves into 1 polygon. Creating a new column is to dissolve according to that column
         dgdf = dgdf.dissolve(by='dissolvefield').dissolve()
         print(dgdf)
         
-        e_gdf = dgdf.geometry.explode()
+        e_gdf = dgdf.geometry.explode() # Now the linear thing bug is fixed, exploding into separate polygons again
         e_gdf = gpd.GeoDataFrame(geometry=e_gdf, crs='epsg:4326')
         
-        v = get_dist_haversine_polygon(e_gdf)
+        v = get_dist_haversine_polygon(e_gdf) #helper?
             #Optimize
 
-        e_gdf['id_num'] = list(range(0,len(e_gdf)))
+        e_gdf['id_num'] = list(range(0,len(e_gdf))) # Maybe use row index?
         op_list = [] 
         mdist_list = [] 
-        site7_loc = [] 
+        site_of_interest = [] 
         for row in e_gdf[['geometry','id_num']].iterrows():
             site = row
             print(list(row)[1])
@@ -1575,24 +1666,24 @@ def map5(request):
             site = site.centroid
             loc = (float(site.x),float(site.y),)
             
-            obj_func, info = optimize_for_site(loc,[v],e)
-            op_list.append(info)
+            obj_func, info = optimize_for_site(loc,[x],e)
+            op_list.append(info) 
 
             mdist_list.append(obj_func)
-            site7_loc.append([float(site.x),float(site.y),list(row)[0]])
+            site_of_interest.append([float(site.x),float(site.y),list(row)[0]])
         index_min = mdist_list.index(min(mdist_list))
 
         print('Selected Sites')
         print(op_list[index_min])
-        print('Selected Site 7 Location')
-        print(site7_loc[index_min])
+        print('Selected Site of interest Location')
+        print(site_of_interest[index_min])
         print('Minimum Haversine Dist Possible Bt Sites (km)')
         print(mdist_list[index_min])
 
         df_sites = op_list[index_min]
 
-        df_sites = df_sites.append(pd.DataFrame([['x0', 0,site7_loc[index_min][1],\
-                                       site7_loc[index_min][0],site7_loc[index_min][2][1],1.0]],columns=df_sites.columns))
+        df_sites = df_sites.append(pd.DataFrame([['x0', 0,site_of_interest[index_min][1],\
+                                       site_of_interest[index_min][0],site_of_interest[index_min][2][1],1.0]],columns=df_sites.columns))
 
         print(df_sites)
 
@@ -1611,8 +1702,8 @@ def map5(request):
         else:
             z = 6
 
-        lat = site7_loc[index_min][1]
-        lon = site7_loc[index_min][0]
+        lat = site_of_interest[index_min][1]
+        lon = site_of_interest[index_min][0]
 
     else:
         d2 = -1
@@ -1705,7 +1796,7 @@ def map6(request):
         e_gdf['id_num'] = list(range(0,len(e_gdf)))
         op_list = [] 
         mdist_list = [] 
-        site7_loc = [] 
+        site_of_interest = [] 
         for row in e_gdf[['geometry','id_num']].iterrows():
             site = row
             #print(list(row)[1])
@@ -1718,20 +1809,20 @@ def map6(request):
             op_list.append(info)
 
             mdist_list.append(obj_func)
-            site7_loc.append([float(site.x),float(site.y),list(row)[0]])
+            site_of_interest.append([float(site.x),float(site.y),list(row)[0]])
         index_min = mdist_list.index(min(mdist_list))
 
         print('Selected Sites')
         print(op_list[index_min])
         print('Selected Site 7 Location')
-        print(site7_loc[index_min])
+        print(site_of_interest[index_min])
         print('Minimum Haversine Dist Possible Bt Sites (km)')
         print(mdist_list[index_min])
 
         df_sites = op_list[index_min]
 
-        df_sites = df_sites.append(pd.DataFrame([['x0', 0,site7_loc[index_min][1],\
-                                       site7_loc[index_min][0],site7_loc[index_min][2][1],1.0]],columns=df_sites.columns))
+        df_sites = df_sites.append(pd.DataFrame([['x0', 0,site_of_interest[index_min][1],\
+                                       site_of_interest[index_min][0],site_of_interest[index_min][2][1],1.0]],columns=df_sites.columns))
 
         print(df_sites)
 
@@ -1750,8 +1841,8 @@ def map6(request):
         else:
             z = 6
 
-        lat = site7_loc[index_min][1]
-        lon = site7_loc[index_min][0]
+        lat = site_of_interest[index_min][1]
+        lon = site_of_interest[index_min][0]
 
     else:
         d2 = -1
