@@ -45,26 +45,22 @@ def read_data(fp):
 
     return gpd.read_file(fp)
 
-def get_dist_haversine_polygon(gdf1):
-    pdf1 = gdf1.centroid
-    pdf2 = gdf1.centroid
-    gdf1['id_num'] = list(range(0,len(gdf1)))
-    print(gdf1)
+def get_dist_haversine_polygon(data):
+    centroids = data.centroid[0]
+    
     site_options = {} 
-    for x,y,id_num in zip(pdf1.x,pdf1.y,gdf1['id_num']):
-        
-        df = pd.DataFrame() 
-        dist_list = [] 
-        lon_list = [] 
-        lat_list = []
-        id_list = []
-        for x2,y2,id_num2 in zip(pdf2.x,pdf2.y,gdf1['id_num']): 
-            if (x,y,) != (x2,y2): 
+    for i in range(len(data)):
+        x1, y1 = centroids[i].x, centroids[i].y
 
-                lon1 = math.radians(x)
-                lat1 = math.radians(y)
-                lon2 = math.radians(x2)
-                lat2 = math.radians(y2) 
+        df = pd.DataFrame() 
+        dist_list, lon_list, lat_list, id_list = [], [], [], []
+
+        for j in range(len(data)):
+            x2, y2 = centroids[j].x, centroids[j].y
+            if (x1,y1) != (x2,y2): 
+
+                lon1, lat1 = math.radians(x1), math.radians(y1)
+                lon2, lat2 = math.radians(x2), math.radians(y2) 
 
                 # haversine formula 
                 dlon = lon2 - lon1 
@@ -76,13 +72,13 @@ def get_dist_haversine_polygon(gdf1):
                 dist_list.append(dist)
                 lon_list.append(x2)
                 lat_list.append(y2)
-                id_list.append(id_num2)
+                id_list.append(j)
 
         df['polyid'] = id_list 
         df['dist'] = dist_list
         df['lon'] = lon_list
         df['lat'] = lat_list
-        site_options[(x,y,)] = df
+        site_options[(x1,y1)] = df
 
     return site_options
 
@@ -164,8 +160,6 @@ def optimize_for_site(site,dictionary_list,n):
         all_vars = [eval(i) for i in var]
         append_lists.append(all_vars)
 
-    print(append_lists)
-    print(n-1)
     for list_of_con in append_lists:
         nsite_total = n-1
         solver.Add(sum(list_of_con) == nsite_total)
@@ -359,6 +353,30 @@ def clear_map(uuid):
     except:
         return
     geometry.delete()
+
+def upload_sites(uuid):
+    """Get saved map for user, and prepare it for sending the file to the user.
+
+    Args:
+        uuid: User's ID
+
+    Returns:
+        Response including the data in a csv format ready to return to the user.
+    """
+    file_name = 'optimized_sites.txt'
+    response = HttpResponse(content_type='')
+    response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file_name)
+
+    geometry = GEOM.objects.get(uuid = uuid)
+
+    lastMap = wkt.loads(geometry.geometry)
+
+    gdf = gpd.GeoDataFrame(geometry=[lastMap], crs='epsg:4326').explode()['geometry'][0]
+
+    gdf = pd.DataFrame(gdf)
+
+    gdf.to_csv(response)
+    return response
 
 
 def update_map(geoMap, data, operation, uuid):
@@ -576,6 +594,57 @@ def get_map(pageNum, post, uuid):
                 data = data.union(buffer_df)
             data = data.dissolve()
             data = data.to_crs('epsg:4326')
+    elif page.operationType == "selectSites":
+        geometry = GEOM.objects.get(uuid = uuid)
+
+        option = options[0]
+
+        selection = int(post[option.description])
+
+        lastMap = wkt.loads(geometry.geometry)
+
+        data = gpd.GeoDataFrame(geometry=[lastMap], crs='epsg:4326')
+        
+        # data = data.buffer(0.0001) # This solves Ring intersection error (or something). Bug
+        
+        # data = gpd.GeoDataFrame(geometry=data)
+        # data['dissolvefield'] = 1  #All polygons are separate, this dissolves into 1 polygon. Creating a new column is to dissolve according to that column
+        # data = data.dissolve(by='dissolvefield').dissolve()
+        
+        data = data.geometry.explode() # Now the linear thing bug is fixed, exploding into separate polygons again
+        data = gpd.GeoDataFrame(geometry=data, crs='epsg:4326')
+        
+        v = get_dist_haversine_polygon(data) #helper?
+            #Optimize
+
+        op_list = [] 
+        mdist_list = [] 
+        site_of_interest = [] 
+
+        for i, row in data[['geometry']].iterrows():
+            index = i[1]
+            site = gpd.GeoDataFrame(geometry=row)
+            siteCentroid = site.centroid
+            location = (float(siteCentroid.x), float(siteCentroid.y))
+
+            objective_function, information = optimize_for_site(location, [v], selection)
+            op_list.append(information)
+            mdist_list.append(objective_function)
+            site_of_interest.append([location[0], location[1], index])
+
+        index_min = mdist_list.index(min(mdist_list))
+        missing_site_info = site_of_interest[index_min]
+        optimal_sites = op_list[index_min]
+        missing_site = pd.DataFrame([['x0', 0, missing_site_info[1], missing_site_info[0], \
+            missing_site_info[2],1.0]],columns=op_list[index_min].columns)
+        
+
+        optimal_sites = pd.concat([optimal_sites, missing_site], ignore_index=True)
+
+        list_of_ids = [int(x) for x in list(optimal_sites['id_num'])]
+
+        data = data.iloc[list_of_ids]
+
 
     if data.empty:
         return geoMap._repr_html_()
@@ -613,6 +682,12 @@ def get_pages(request):
     if nextStep:
         pageNum = int(pageNum) + 1
         
+    try:
+        PAGE.objects.get(pk=pageNum)
+    except:
+        save_cached_map(uuid)
+        return upload_sites(uuid)
+
     context = build_page_context(pageNum)
 
 
