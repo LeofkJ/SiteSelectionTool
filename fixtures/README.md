@@ -33,23 +33,23 @@ The options are `fileSelection`, `attributeSelection`, `buffer`, `areaComputatio
 
 This step's data will be the entirety of the file specified by the user's selection.
 
-See [How To Specify The File path](README.md/#how-to-specify-the-file-path)).
+See [How To Specify The File path](#how-to-specify-the-file-path).
 
 ### attributeSelection:
 
 This step's data will be the polygons of the specified file with attributes corresponding to the user input.
 
-See [How To Specify The File path](README.md/#how-to-specify-the-file-path) and [Example steps](README.md/#example-steps)
+See [How To Specify The File path](#how-to-specify-the-file-path) and [Example steps](#example-steps)
 
 ### buffer:
 This step's data will be a buffer around a file's plygons, with a buffer size specified by the user. 
 
-See [Example steps](README.md/#example-steps)
+See [Example steps](#example-steps)
 
 ### areaComputation:
-This step's data will be the area of the previous step's polygons. The user can specify which polygons to keep using the same operations as [attributeSelection](README.md/#attributeselection)
+This step's data will be the area of the previous step's polygons. The user can specify which polygons to keep using the same operations as [attributeSelection](#attributeselection)
 
-See [Example steps](README.md/#example-steps)
+See [Example steps](#example-steps)
 
 ### selectSites
 **This is typically the last step before downloading the data.**
@@ -83,11 +83,11 @@ Use this to keep from the previous step's data the polygons that are IN the curr
 }
 ```
 
+## Option template:
 The options array will regroup all the user inputs of the current step. There are two formats, depending on the option type (slider or dropdown).
+### Dropdown:
 
-## Dropdown:
-
-### If operationType is `fileSelection`:
+#### If operationType is `fileSelection`:
 ```json
     {
         "description": "Put a descriptive description for this input. Shown to the user.",
@@ -99,7 +99,7 @@ The options array will regroup all the user inputs of the current step. There ar
     },
 ```
 
-### If operationType is `attributeSelection`:
+#### If operationType is `attributeSelection`:
 ```json
     {
         "description": "Put a descriptive description for this input. Shown to the user.",
@@ -111,7 +111,7 @@ The options array will regroup all the user inputs of the current step. There ar
         ]
     },
 ```
-### Choices array
+#### Choices array
 
 The choices array will be all the choices available to the user. It can either be an array of choices like so:
 
@@ -129,9 +129,9 @@ Or it can be an array of arrays, where each array has the human readable text th
     ]
 ```
 
-## Slider
+### Slider
 
-### If operationType is `fileSelection`:
+#### If operationType is `fileSelection`:
 ```json
     {
         "description": "Put a descriptive description for this input. Shown to the user.",
@@ -143,7 +143,7 @@ Or it can be an array of arrays, where each array has the human readable text th
     },
 ```
 
-### If operationType is `attributeSelection`:
+#### If operationType is `attributeSelection`:
 ```json
     {
         "description": "Put a descriptive description for this input. Shown to the user.",
@@ -157,25 +157,25 @@ Or it can be an array of arrays, where each array has the human readable text th
     },
 ```
 
-# How to specify the file path
+## How to specify the file path
 
 Your geojson file and the path to them must be properly defined. 
 
 Here are how the code determines which file to access:
 
-## If operationType is `attributeSelection`:
+### If operationType is `attributeSelection`:
 
 The first option will determine which file to access.
 
 The path to the file accessed will be the first option's `file` + the first option's number (if option type is Slider) or the first option's choice (if the option type is Dropdown) + `.geojson`
 
-## If operationType is `fileSelection`:
+### If operationType is `fileSelection`:
 
 All the options will determine which file to access.
 
 The file path is a concatenation of first option's `file` + first option's number or choice + second option's `file` + second option's number or choice + ... + `.geojson`
 
-## If operationType is `buffer`:
+### If operationType is `buffer`:
 
 Every option will point to a different file as follows:
 
@@ -183,11 +183,11 @@ The file path is the option's `file`.
 
 The buffer size is the option's number or choice.
 
-## If operationType is `areaComputation` or `selectSites`:
+### If operationType is `areaComputation` or `selectSites`:
 
 The currently stored data will be accessed. No files are looked for.
 
-# Example steps:
+## Example steps:
 
 ```json
  {
