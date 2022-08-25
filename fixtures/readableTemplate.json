@@ -105,12 +105,12 @@
         "betweenStepOperation": "clip",
         "options":[
             {
-                "description": "Enter maximum distance to road (km): ",
+                "description": "Enter maximum distance to road (m): ",
                 "type": "Slider",
                 "file": "mroads_simple",
-                "minimum": 0.5,
-                "maximum": 3,
-                "step": 0.5
+                "minimum": 500,
+                "maximum": 3000,
+                "step": 50
             }
         ]
     },

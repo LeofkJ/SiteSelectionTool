@@ -509,9 +509,13 @@ def get_map(pageNum, post, uuid):
         
         firstOption = options[0]
 
-        geoFile = firstOption.geoFile + get_choiceCode(firstOption, post[firstOption.description])
+        geoFile = firstOption.geoFile
 
-        
+        if option.types == "SLD":
+            geoFile += selection
+        else:
+            geoFile += get_choiceCode(option, post[firstOption.description])
+
         geoFile += ".geojson"
 
         data = read_data(geoFile)
@@ -579,12 +583,9 @@ def get_map(pageNum, post, uuid):
 
             readData = read_data(geoFile).to_crs('esri:102001')
 
-            selection = post[option.description]
+            selection = float(post[option.description])
 
-            if option.types == "SLD":
-                selection = float(selection)
-
-            buffer = readData.geometry.buffer(selection * 1000).unary_union
+            buffer = readData.geometry.buffer(selection).unary_union
 
             buffer_df = gpd.GeoDataFrame(geometry=[buffer], crs='esri:102001')
 
