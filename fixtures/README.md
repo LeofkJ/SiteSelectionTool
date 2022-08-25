@@ -52,6 +52,7 @@ This step's data will be the area of the previous step's polygons. The user can 
 See [Example steps](README.md/#example-steps)
 
 ### selectSites
+**This is typically the last step before downloading the data.**
 This step will select a user-specified amount of sites to keep. The sites chosen will be optimized to minimize the euclidean distance between sites.
 
 ## Between step operations:
@@ -68,6 +69,8 @@ Use this to keep from the previous step's data the polygons that are NOT IN the 
 
 ### clip:
 Use this to keep from the previous step's data the polygons that are IN the current step's data.
+
+## Step template:
 
 ```json
 {
@@ -305,3 +308,42 @@ The output of this step will be the previous step's data where the current step'
 The file used for this step is `mroads_simple`. 
 
 The output of this step will be polygons in the previous step's whose location are also within the buffer around the data in `mroads_simple`.
+
+```json
+{
+        "stepTitle": "Minimum area of polygon to consider",
+        "operationType": "areaComputation",
+        "betweenStepOperation": null,
+        "options":[
+            {
+                "description": "Enter minimum area of site (km2): ",
+                "type": "Slider",
+                "operation": ">=",
+                "minimum": 0,
+                "maximum": 5,
+                "step": 0.1
+            }
+        ]
+    }
+```
+
+If the user selects a minimum area of 0.4, the output of this step will be the previous step's polygons with an area greater than 0.4 kilometre squared,
+
+```json
+{
+        "stepTitle": "Optimize",
+        "operationType": "selectSites",
+        "betweenStepOperation": null,
+        "options":[
+            {
+                "description": "Number of sites to export (optimized for Euclidean distance): ",
+                "type": "Slider",
+                "minimum": 2,
+                "maximum": 10,
+                "step": 1
+            }
+        ]
+    }
+```
+
+ If the user selects 7 sites, the output of this step will be 7 polygon from the previous step's data that are the closest to each other (measured with euclidean distance).
