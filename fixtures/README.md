@@ -33,27 +33,29 @@ The options are `fileSelection`, `attributeSelection`, `buffer`, `areaComputatio
 
 This step's data will be the entirety of the file specified by the user's selection.
 
-See [How To Specify The File path](#how-to-specify-the-file-path).
+See [How To Specify The File path](#how-to-specify-the-file-path) and [example step](#fileselection-example).
 
 ### attributeSelection:
 
 This step's data will be the polygons of the specified file with attributes corresponding to the user input.
 
-See [How To Specify The File path](#how-to-specify-the-file-path) and [Example steps](#example-steps)
+See [How To Specify The File path](#how-to-specify-the-file-path) and [example step](#attributeselection-example)
 
 ### buffer:
 This step's data will be a buffer around a file's plygons, with a buffer size specified by the user. 
 
-See [Example steps](#example-steps)
+See [example step](#buffer-example)
 
 ### areaComputation:
 This step's data will be the area of the previous step's polygons. The user can specify which polygons to keep using the same operations as [attributeSelection](#attributeselection)
 
-See [Example steps](#example-steps)
+See [example step](#areacomputation-example)
 
 ### selectSites
 **This is typically the last step before downloading the data.**
 This step will select a user-specified amount of sites to keep. The sites chosen will be optimized to minimize the euclidean distance between sites.
+
+See [example step](#selectsites-example)
 
 ## Between step operations:
 The options are `null`, `intersection`, `difference` and `clip`.
@@ -61,15 +63,21 @@ The options are `null`, `intersection`, `difference` and `clip`.
 ### null:
 Use this if it is the first step, or when no files are accessed (specifically for `areaComputation` and `selectSites` operations)
 
+See [attributeSelection](#attributeselection-example), [areaComputation](#areacomputation-example) and [selectSites](#selectsites-example) examples.
+
 ### intersection:
 Use this to get the intersection between the previous step's data and the current step's data.
+
+See [example](#fileselection-example)
 
 ### difference:
 Use this to keep from the previous step's data the polygons that are NOT IN the current step's data.
 
+See [example](#difference-example)
 ### clip:
 Use this to keep from the previous step's data the polygons that are IN the current step's data.
 
+See [example](#buffer-example)
 ## Step template:
 
 ```json
@@ -189,6 +197,7 @@ The currently stored data will be accessed. No files are looked for.
 
 ## Example steps:
 
+### attributeSelection example
 ```json
  {
         "stepTitle": "Aerial Survey Data",
@@ -220,7 +229,9 @@ The currently stored data will be accessed. No files are looked for.
     }
 ```
 
-This step will pick the data from file `insect_sb` if `Spruce Budworm` is selected, or `insect_jpb` if `Jack Pine Budworm` is selected. If the damage type selected is `Light` and the year selected is `2013`, the data that it will take is all the polygons in the file with `RANKING = Light` and `EVENT_YEAR = 2013` 
+This step will pick the data from file `insect_sb` if `Spruce Budworm` is selected, or `insect_jpb` if `Jack Pine Budworm` is selected. If the damage type selected is `Light` and the year selected is `2013`, the data that it will take is all the polygons in the file with `RANKING = Light` and `EVENT_YEAR = 2013`. **The betweenStepOperation is null, therefore this is the first step.**
+
+### fileSelection example
 
 ```json
 {
@@ -252,6 +263,8 @@ This step will pick the data from file `insect_sb` if `Spruce Budworm` is select
 
 If the user selects `Balsam Fir` host specy with `50` threshold, the file selected will be `balsam_fir/spec_50`. The output of this step will be the intersection between the last step's data and the data from the selected file.
 
+### difference example
+
 ```json
 {
     "stepTitle": "Exclude Fires",
@@ -269,7 +282,7 @@ If the user selects `Balsam Fir` host specy with `50` threshold, the file select
             "step": 1
         },
         {
-            "description": "Ending year of fires to exclude: ",
+            "description": "Ending year of fires to exclude: ", 
             "type": "Slider",
             "attribute": "YEAR",
             "operation": "<=",
@@ -286,6 +299,8 @@ The file used for this step is `fires_flat`.
 If the user selects a starting year `1998` and an ending year `2013`, the data will be all polygons in `fires_flat` with `YEAR >= 1998` and `YEAR <= 2013`.
 
 The output of this step will be the previous step's data where the current step's data removed.
+
+### buffer example
 
 ```json
 {
@@ -309,6 +324,7 @@ The file used for this step is `mroads_simple`.
 
 The output of this step will be polygons in the previous step's whose location are also within the buffer around the data in `mroads_simple`.
 
+### areaComputation example
 ```json
 {
         "stepTitle": "Minimum area of polygon to consider",
@@ -329,6 +345,7 @@ The output of this step will be polygons in the previous step's whose location a
 
 If the user selects a minimum area of 0.4, the output of this step will be the previous step's polygons with an area greater than 0.4 kilometre squared,
 
+### selectSites example
 ```json
 {
         "stepTitle": "Optimize",
